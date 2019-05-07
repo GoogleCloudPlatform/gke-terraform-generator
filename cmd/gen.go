@@ -1,54 +1,47 @@
 package cmd
 
 import (
-	"errors"
 	"io/ioutil"
 	"os"
 	"path"
-	"runtime"
+	"strings"
 
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v2"
 	"partner-code.googlesource.com/gke-terraform-generator/generator"
+	"partner-code.googlesource.com/gke-terraform-generator/templates"
 )
 
-// flag vars
+// genConfig flag vars
+var genConfigVars *generator.Vars
 var outDir string
-var dataFile string
+var vars []string
 
 // genCMD command to generate GKE Terraform file
 var genCMD = &cobra.Command{
 	Use:   "gen",
 	Short: "Generates GKE TF File with given locals",
 	Run: func(cmd *cobra.Command, args []string) {
-		data, err := ioutil.ReadFile(dataFile)
-		checkErr(err)
-
-		var context interface{}
-		err = yaml.Unmarshal(data, &context)
-
-		// get module dir path for templates
-		_, filename, _, ok := runtime.Caller(0)
-		if !ok {
-			checkErr(errors.New("error fetching templates"))
+		// Override any individually set vars
+		genConfigVars.Set(strings.Join(vars, ","))
+		if err := ioutil.WriteFile(path.Join(outDir, "/vars.tf"), genConfigVars.TFVars(), 0644); err != nil {
+			PrintErrln(err)
 		}
-		tplDir := path.Join(path.Dir(filename), "../templates")
-
-		checkErr(generator.Generate(context, tplDir, outDir))
+		if err := ioutil.WriteFile(path.Join(outDir, "/main.tf"), templates.Main, 0644); err != nil {
+			PrintErrln(err)
+		}
 	},
 }
 
 // init sets up cli command and flags
 func init() {
-	RootCMD.AddCommand(genCMD)
-	genCMD.Flags().StringVar(&outDir, "out", "./", "output directory")
-	genCMD.Flags().StringVar(&dataFile, "data", "./data.yml", "data yaml file path")
-}
-
-// checkErr is a simple helper that checks errors and exits if err is not nil
-func checkErr(err error) {
+	var err error
+	outDir, err = os.Getwd()
 	if err != nil {
-		os.Stderr.WriteString(err.Error() + "\n")
-		os.Exit(1)
+		PrintErrln(err)
 	}
+	genConfigVars = &generator.Vars{}
+	RootCMD.AddCommand(genCMD)
+	genCMD.Flags().StringVar(&outDir, "out", outDir, "output directory")
+	genCMD.Flags().Var(genConfigVars, "vars", "config vars")
+	genCMD.Flags().StringSliceVar(&vars, "var", []string{}, "config var (ex. --var=\"private=true\"")
 }
