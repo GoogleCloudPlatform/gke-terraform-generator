@@ -1,0 +1,55 @@
+# RBAC Role and Bindings for Anthos to use PSP
+# policies
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: configmanagement.gke.io:anthos-psp
+rules:
+- apiGroups:
+  - extensions
+  resources:
+  - podsecuritypolicies
+  resourceNames:
+  - gce.unprivileged-addon
+  verbs:
+  - use
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: configmanagement.gke.io:monitor-psp
+  namespace: config-management-system
+subjects:
+  - kind: ServiceAccount
+    name: monitor
+roleRef:
+  kind: ClusterRole
+  name: configmanagement.gke.io:anthos-psp
+  apiGroup: rbac.authorization.k8s.io
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: configmanagement.gke.io:syncer-psp
+  namespace: config-management-system
+subjects:
+  - kind: ServiceAccount
+    name: importer
+roleRef:
+  kind: ClusterRole
+  name: configmanagement.gke.io:anthos-psp
+  apiGroup: rbac.authorization.k8s.io
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: configmanagement.gke.io:importer-psp
+  namespace: config-management-system
+subjects:
+  - kind: ServiceAccount
+    name: importer
+roleRef:
+  kind: ClusterRole
+  name: configmanagement.gke.io:anthos-psp
+  apiGroup: rbac.authorization.k8s.io
+

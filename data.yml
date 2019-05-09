@@ -1,0 +1,7 @@
+ProjectID: "PID"
+ProjectName: "PNAME"
+Region: "REGION"
+Zones:
+  - "ZONE1"
+  - "ZONE2"
+ServiceAccountID: "SERVICEACCTID"
