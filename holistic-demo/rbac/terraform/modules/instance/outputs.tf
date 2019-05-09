@@ -14,10 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package main
-
-import "partner-code.googlesource.com/gke-terraform-generator/cmd"
-
-func main() {
-	cmd.Execute()
+// The public IP of the bastion instance
+output "external_ip" {
+  value = "${google_compute_instance.instance.network_interface.0.access_config.0.assigned_nat_ip}"
 }

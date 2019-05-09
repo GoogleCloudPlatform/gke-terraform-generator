@@ -14,10 +14,28 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package main
+package files
 
-import "partner-code.googlesource.com/gke-terraform-generator/cmd"
+import (
+	"os"
 
-func main() {
-	cmd.Execute()
+	"k8s.io/klog"
+)
+
+func IsFile(path string) (isWritable bool, err error) {
+	isWritable = false
+	info, err := os.Stat(path)
+	if err != nil {
+		klog.Error("File doesn't exist")
+		return
+	}
+
+	err = nil
+	if info.IsDir() {
+		klog.Error("Path is a directory was expecting a file")
+		return
+	}
+
+	isWritable = true
+	return
 }

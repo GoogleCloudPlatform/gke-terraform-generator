@@ -1,0 +1,14 @@
+#An unsigned `nginx` container with the "break glass" annotation
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx
+  annotations:
+    alpha.image-policy.k8s.io/break-glass: "true"
+spec:
+  containers:
+  - name: nginx
+    image: "nginx:latest"
+    ports:
+    - containerPort: 80
+EOF

@@ -1,0 +1,70 @@
+# Copyright 2018 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "api.go",
+        "default_values.go",
+        "doc.go",
+        "validate.go",
+    ],
+    importpath = "partner-code.googlesource.com/gke-terraform-generator/pkg/api",
+    visibility = ["//visibility:public"],
+    deps = [
+        "@com_github_creasty_defaults//:go_default_library",
+        "@com_github_imdario_mergo//:go_default_library",
+        "@in_gopkg_go_playground_validator_v9//:go_default_library",
+        "@in_gopkg_yaml_v2//:go_default_library",
+        "@io_k8s_klog//:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_validate_test",
+    size = "small",
+    srcs = ["validate_test.go"],
+    data = ["//pkg/api/testdata:test_yaml"],
+    embed = [":go_default_library"],
+)
+
+go_test(
+    name = "go_defaults_values_test",
+    size = "small",
+    srcs = ["default_values_test.go"],
+    data = ["//pkg/api/testdata:test_yaml"],
+    embed = [":go_default_library"],
+)
+
+go_test(
+    name = "go_api_test",
+    size = "small",
+    srcs = ["api_test.go"],
+    data = ["//pkg/api/testdata:test_yaml"],
+    embed = [":go_default_library"],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = [
+        "api_test.go",
+        "default_values_test.go",
+        "validate_test.go",
+    ],
+    data = ["//pkg/api/testdata:test_yaml"],
+    embed = [":go_default_library"],
+    size="small"
+)

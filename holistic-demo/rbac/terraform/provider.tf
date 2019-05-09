@@ -14,10 +14,24 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package main
+// Configures the default project and zone for underlying Google Cloud API calls
+provider "google" {
+  project = "${var.project}"
+  zone    = "${var.zone}"
+  version = "~> 1.13"
+}
 
-import "partner-code.googlesource.com/gke-terraform-generator/cmd"
+// Pins the version of the "random" provider
+provider "random" {
+  version = "~> 1.3"
+}
 
-func main() {
-	cmd.Execute()
+// Pins the version of the "template" provider
+provider "template" {
+  version = "~> 1.0"
+}
+
+// Pins the version of the "null" provider
+provider "null" {
+  version = "~> 1.0"
 }

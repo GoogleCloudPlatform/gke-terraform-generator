@@ -14,10 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package main
+package files
 
-import "partner-code.googlesource.com/gke-terraform-generator/cmd"
-
-func main() {
-	cmd.Execute()
+func IsWritable(path string) (isWritable bool, err error) {
+	return isWritableDirectory(path)
 }

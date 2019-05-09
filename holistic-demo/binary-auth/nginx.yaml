@@ -1,0 +1,12 @@
+#Deploy nginx application in the project
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx
+spec:
+  containers:
+  - name: nginx
+  #Replace ${PROJECT_ID} with the actual project ID
+    image: "gcr.io/${PROJECT_ID}/nginx:latest"
+    ports:
+    - containerPort: 80

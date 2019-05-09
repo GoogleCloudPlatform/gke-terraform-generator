@@ -14,10 +14,20 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package main
+package api
 
-import "partner-code.googlesource.com/gke-terraform-generator/cmd"
+import "testing"
 
-func main() {
-	cmd.Execute()
+func TestAPI(t *testing.T) {
+
+	gkeTF, err := UnmarshalGkeTF("testdata/example.yaml")
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if gkeTF.Name == "" {
+		t.Fatal("gkeTF.Name is empty")
+	}
+
 }

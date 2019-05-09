@@ -14,10 +14,28 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package main
+package api
 
-import "partner-code.googlesource.com/gke-terraform-generator/cmd"
+import (
+	"gopkg.in/go-playground/validator.v9"
+	"k8s.io/klog"
+)
 
-func main() {
-	cmd.Execute()
+// ValidateYamlInput checks the values that the user passes in via the yaml file.
+func ValidateYamlInput(gkeTF *GkeTF) error {
+
+	validate := validator.New()
+
+	if err := validate.Struct(gkeTF.Spec); err != nil {
+		// TODO I this I need to check this casting
+		validationErrors := err.(validator.ValidationErrors)
+		if validationErrors == nil {
+			return err
+		}
+		klog.Errorf("error validating gke tf struct: %v", validationErrors)
+		return validationErrors
+	}
+
+	return nil
 }
+
