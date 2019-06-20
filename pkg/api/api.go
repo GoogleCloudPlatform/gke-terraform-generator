@@ -25,7 +25,6 @@ import (
 // TODO we are missing maintenance_start_time for instance
 // master_ipv4_cidr_block
 
-
 type GkeTF struct {
 	TypeMeta   `yaml:",inline"`
 	ObjectMeta `yaml:"metadata,omitempty"`

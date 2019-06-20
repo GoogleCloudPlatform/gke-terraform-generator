@@ -95,10 +95,10 @@ func (gkeTemplates *GKETemplates) processTemplates(dst string, cluster *api.GkeT
 		if err := w.Flush(); err != nil {
 			return err
 		}
-		klog.Infof("Created terraform file: %s",t.FileName)
+		klog.Infof("Created terraform file: %s", t.FileName)
 
 	}
-	klog.Infof("Finished creating terraform files in: %s",dst)
+	klog.Infof("Finished creating terraform files in: %s", dst)
 
 	return nil
 }

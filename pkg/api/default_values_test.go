@@ -20,7 +20,6 @@ import (
 	"testing"
 )
 
-
 func TestDefaults(t *testing.T) {
 
 	var configFile = "testdata/example.yaml"
@@ -33,7 +32,7 @@ func TestDefaults(t *testing.T) {
 	*gkeTF.Spec.Private = false
 	*gkeTF.Spec.Addons.Autoscaling = false
 
-	if err := SetApiDefaultValues(gkeTF,configFile); err != nil {
+	if err := SetApiDefaultValues(gkeTF, configFile); err != nil {
 		t.Fatalf("error merging defaults: %v", gkeTF)
 	}
 
@@ -41,7 +40,7 @@ func TestDefaults(t *testing.T) {
 		t.Fatal("*gkeTF.Spec.Private is not false")
 	}
 
-	t.Logf("*gkeTF.Spec.Addons.Autoscaling: %v",*gkeTF.Spec.Addons.Autoscaling)
+	t.Logf("*gkeTF.Spec.Addons.Autoscaling: %v", *gkeTF.Spec.Addons.Autoscaling)
 	if *gkeTF.Spec.Addons.Autoscaling != false {
 		t.Fatal("*gkeTF.Spec.Addons.Autoscaling is not false")
 	}
@@ -50,11 +49,9 @@ func TestDefaults(t *testing.T) {
 		t.Fatal("*gkeTF.Spec.OauthScopes is nil")
 	}
 
-
 }
 
 func TestDefaultsSmall(t *testing.T) {
-
 
 	var configFile = "testdata/min-example.yaml"
 	gkeTF, err := UnmarshalGkeTF(configFile)
@@ -63,7 +60,7 @@ func TestDefaultsSmall(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := SetApiDefaultValues(gkeTF,configFile); err != nil {
+	if err := SetApiDefaultValues(gkeTF, configFile); err != nil {
 		t.Fatalf("error merging defaults: %v", gkeTF)
 	}
 

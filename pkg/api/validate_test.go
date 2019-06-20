@@ -18,7 +18,6 @@ package api
 
 import "testing"
 
-
 func TestValidate(t *testing.T) {
 
 	configFile := "testdata/example.yaml"
@@ -27,7 +26,6 @@ func TestValidate(t *testing.T) {
 	if err := SetApiDefaultValues(gkeTF, configFile); err != nil {
 		t.Fatalf("failed %v", err)
 	}
-
 
 	if err := ValidateYamlInput(gkeTF); err != nil {
 		t.Fatal(err)

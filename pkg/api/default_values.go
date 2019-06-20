@@ -59,8 +59,7 @@ func SetApiDefaultValues(gkeTF *GkeTF, configFile string) error {
 	}
 
 	if gkeTF.Spec.Addons == nil {
-		gkeTF.Spec.Addons = &AddonsSpec{
-		}
+		gkeTF.Spec.Addons = &AddonsSpec{}
 	}
 
 	if err := mergo.Merge(&gkeTF.Spec, &defaultSpec.Spec); err != nil {

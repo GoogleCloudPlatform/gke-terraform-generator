@@ -51,27 +51,26 @@ func TestTemplates(t *testing.T) {
 	}
 
 	/*
-	tf := "../../../terraform/terraform"
+		tf := "../../../terraform/terraform"
 
-	_, err = os.Stat(tf)
-	if err != nil {
-		t.Fatal("terraform doesn't exist")
-	}
+		_, err = os.Stat(tf)
+		if err != nil {
+			t.Fatal("terraform doesn't exist")
+		}
 
-	cmd := exec.Command("testdata/tf_wrapper.sh", tf)
+		cmd := exec.Command("testdata/tf_wrapper.sh", tf)
 
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	err = cmd.Run()
-	if err != nil {
-		t.Fatalf("terraform init failed with %s\n", err)
-	}
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		err = cmd.Run()
+		if err != nil {
+			t.Fatalf("terraform init failed with %s\n", err)
+		}
 
-	out, err := exec.Command(tf, "init").Output()
-	if err != nil {
-		t.Logf("terraform plan %s\n", out)
-		t.Fatalf("terraform plan failed with %s\n", err)
-	}
-	 */
+		out, err := exec.Command(tf, "init").Output()
+		if err != nil {
+			t.Logf("terraform plan %s\n", out)
+			t.Fatalf("terraform plan failed with %s\n", err)
+		}
+	*/
 }
-
