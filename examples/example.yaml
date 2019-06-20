@@ -19,18 +19,18 @@ spec:
   zones:
     - us-west1-c
     - us-west1-b
-  private: false
+  private: true
   region: "us-west1"
   regional: false
   addons:
     istio: true
-    logging: true
-    monitoring: true
-    networkPolicies: true
-    podServicePolicies: false
+    logging: "logging.googleapis.com/kubernetes"
+    monitoring: "monitoring.googleapis.com/kubernetes"
+    networkPolicy: true
+    podSecurityPolicy: false
     hpa: true
     vpa: false
-    autoscaling: true
+    autoscaling: false
     binaryAuth: true
     httpLoadBalancing: true
   network:
@@ -41,7 +41,8 @@ spec:
       subnetRange: "10.0.0.0/24"
       podSubnetRange: "10.1.0.0/16"
       serviceSubnetRange: "10.2.0.0/20"
-  version: 1.13.5-gke.10
+      masterIPV4CIDRBlock: "172.16.0.16/28"
+  version: latest
   nodePools:
     - metadata:
         name: my-node-pool
@@ -57,8 +58,8 @@ spec:
         diskSizeGB: 50
         diskType: pd-standard
         tags:
-          - red
-          - white
+        - red
+        - white
   tags:
     - blue
     - green

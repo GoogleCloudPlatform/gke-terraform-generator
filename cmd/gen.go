@@ -44,13 +44,11 @@ var (
 	genCommand = &cobra.Command{
 		Use:   "gen",
 		Short: "Generates GKE TF File with given locals",
-		// TODO refactor into a function
 		Run: NewGen,
 	}
 )
 
 func init() {
-	// TODO on the fence about this, should we have the user specify the directory
 	defaultDir, err := os.Getwd()
 	if err != nil {
 		klog.Errorf("Error getting directory: %v", err)
@@ -67,6 +65,7 @@ func init() {
 	RootCMD.AddCommand(genCommand)
 	// Add root flags so we can get logging flags
 	genCommand.Flags().AddFlagSet(RootCMD.Flags())
+	// TODO add long help descriptions for these
 	genCommand.Flags().StringVarP(&outDir, "directory", "d", defaultDir, "output directory")
 	genCommand.Flags().StringVarP(&configFile, "file", "f", "", "config yaml file")
 	genCommand.Flags().StringVarP(&projectId, "project-id", "p", "", "gcp project id")
@@ -86,7 +85,7 @@ func NewGen(cmd *cobra.Command, args []string) {
 
 	gkeTF, err = api.UnmarshalGkeTF(configFile)
 	if err != nil {
-		klog.Errorf("Error umarshalling yaml: %v", err)
+		klog.Errorf("Error unmarshaling the configuration file: %v", err)
 		os.Exit(1)
 	}
 
@@ -126,6 +125,10 @@ func checkCliArgs() error {
 
 	if outDir == "" {
 		return errors.New("--directory option must be set with a directory name")
+	}
+
+	if err := files.CreateDirIfNotExist(outDir); err != nil {
+		return errors.New(fmt.Sprintf("Error creating directory: %s ... %s", outDir, err.Error()))
 	}
 
 	test, err := files.IsWritable(outDir)

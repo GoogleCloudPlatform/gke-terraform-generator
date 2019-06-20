@@ -14,22 +14,34 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package api
+package files
 
-import "testing"
+import (
+	"os"
 
-// TODO add more tests
+	"k8s.io/klog"
+)
 
-func TestAPI(t *testing.T) {
-
-	gkeTF, err := UnmarshalGkeTF("../../examples/example.yaml")
-
+func isWritableDirectory(path string) (isWritable bool, err error) {
+	isWritable = false
+	info, err := os.Stat(path)
 	if err != nil {
-		t.Fatal(err)
+		klog.Errorf("Path doesn't exist: %s", path)
+		return
 	}
 
-	if gkeTF.Name == "" {
-		t.Fatal("gkeTF.Name is empty")
+	err = nil
+	if !info.IsDir() {
+		klog.Errorf("Path isn't a directory: %s", path)
+		return
 	}
 
+	// Check if the user bit is enabled in file permission
+	if info.Mode().Perm()&(1<<(uint(7))) == 0 {
+		klog.Errorf("Write permission bit is not set on this directory for user: %s", path)
+		return
+	}
+
+	isWritable = true
+	return
 }

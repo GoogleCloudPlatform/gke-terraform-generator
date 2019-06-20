@@ -17,10 +17,11 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 go_library(
     name = "go_default_library",
     srcs = [
-        "is-directory.go",
+        "is-writeable-directory.go",
         "is-file.go",
         "is-writable.go",
         "is-writeable_windows.go",
+        "dir.go",
     ],
     importpath = "partner-code.googlesource.com/gke-terraform-generator/pkg/files",
     visibility = ["//visibility:public"],

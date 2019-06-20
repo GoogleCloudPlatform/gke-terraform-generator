@@ -14,6 +14,65 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+/*
+
+	Package api implements the api used by gke-tf.
+	It allows for a user to define a GKE Cluster in yaml.
+
+	An example YAML document:
+
+		kind: gke-cluster
+		metadata:
+	  	  name: "test-cluster"
+		spec:
+		  zones:
+		    - us-west1-c
+		    - us-west1-b
+		  private: false
+		  region: "us-west1"
+		  regional: false
+		  addons:
+		    istio: true
+		    logging: true
+		    monitoring: true
+		    networkPolicy: true
+		    podSecurityPolicy: false
+		    hpa: true
+		    vpa: false
+		    autoscaling: false
+		    binaryAuth: true
+		    httpLoadBalancing: true
+		  network:
+		    metadata:
+		      name: my-network
+		    spec:
+		      subnetName: my-subnet
+		      subnetRange: "10.0.0.0/24"
+		      podSubnetRange: "10.1.0.0/16"
+		      serviceSubnetRange: "10.2.0.0/20"
+		  version: 1.13.5-gke.10
+		  nodePools:
+		    - metadata:
+		    name: my-node-pool
+		    spec:
+		      initialNodeCount: 1
+		      machineType: n1-standard-1
+		      diskSizeGB: 50
+		    - metadata:
+		      name: my-other-nodepool
+		    spec:
+		      initialNodeCount: 1
+		      machineType: n1-standard-1
+		      diskSizeGB: 50
+		      diskType: pd-standard
+		      tags:
+		        - red
+		        - white
+		  tags:
+		    - blue
+		    - green
+
+*/
 package api
 
-// TODO
+// TODO more

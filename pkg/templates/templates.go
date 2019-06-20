@@ -15,6 +15,8 @@ limitations under the License.
 */
 
 package templates
+// TODO package godoc
+// TODO godocs in general
 
 import (
 	"bufio"
@@ -37,29 +39,30 @@ type GKETemplates struct {
 	Templates []*TerraformTemplate
 }
 
-var templates = []*TerraformTemplate{
-	{
-		"main.tf",
-		terraform.GKEMainTF,
-	},
-	{
-		"network.tf",
-		terraform.GKENetworkTF,
-	},
-	{
-		"outputs.tf",
-		terraform.GKEOutputsTF,
-	},
-	{
-		"variables.tf",
-		terraform.GKEVariablesTF,
+var templates =
+	&GKETemplates {
+	[]*TerraformTemplate{
+		{
+			"main.tf",
+			terraform.GKEMainTF,
+		},
+		{
+			"network.tf",
+			terraform.GKENetworkTF,
+		},
+		{
+			"outputs.tf",
+			terraform.GKEOutputsTF,
+		},
+		{
+			"variables.tf",
+			terraform.GKEVariablesTF,
+		},
 	},
 }
 
 func NewGKETemplates() *GKETemplates {
-	return &GKETemplates{
-		Templates: templates,
-	}
+	return templates
 }
 
 // CopyTo is used to copy all of the templates in the
@@ -73,7 +76,7 @@ func (gkeTemplates *GKETemplates) processTemplates(dst string, cluster *api.GkeT
 	// TODO refactor to access a bufio.NewWriter interface
 	// TODO need to be able to override file writing in unit tests
 
-	for _, t := range templates {
+	for _, t := range gkeTemplates.Templates {
 		fileName := path.Join(dst, t.FileName)
 		f, err := os.Create(fileName)
 		if err != nil {
@@ -83,7 +86,7 @@ func (gkeTemplates *GKETemplates) processTemplates(dst string, cluster *api.GkeT
 		w := bufio.NewWriter(f)
 
 		tmpl, err := template.New(t.FileName).Funcs(
-			template.FuncMap{"StringsJoin": strings.Join}).Parse(t.GoTemplate)
+			template.FuncMap{"StringsJoin": strings.Join }).Parse(t.GoTemplate)
 		if err != nil {
 			return err
 		}

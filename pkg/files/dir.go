@@ -14,22 +14,20 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package api
+package files
 
-import "testing"
+import (
+	"os"
+)
 
-// TODO add more tests
-
-func TestAPI(t *testing.T) {
-
-	gkeTF, err := UnmarshalGkeTF("../../examples/example.yaml")
-
-	if err != nil {
-		t.Fatal(err)
+// CreateDirIfNotExist is a func that creates a director path if it does not exist.
+func CreateDirIfNotExist(dir string) error {
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		err = os.MkdirAll(dir, 0755)
+		if err != nil {
+			return err
+		}
 	}
 
-	if gkeTF.Name == "" {
-		t.Fatal("gkeTF.Name is empty")
-	}
-
+	return nil
 }

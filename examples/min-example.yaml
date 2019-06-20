@@ -16,7 +16,6 @@ kind: gke-cluster
 metadata:
   name: "test-cluster"
 spec:
-  private: false # this can be removed, but I need it because of CFT problem
   region: "us-west1"
   network:
     metadata:
@@ -26,6 +25,7 @@ spec:
       subnetRange: "10.0.0.0/24"
       podSubnetRange: "10.1.0.0/16"
       serviceSubnetRange: "10.2.0.0/20"
+      masterIPV4CIDRBlock: "172.16.0.16/28"
   nodePools:
     - metadata:
         name: my-node-pool

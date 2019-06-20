@@ -14,22 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package api
+package main
 
-import "testing"
+// TODO godoc
 
-// TODO add more tests
-
-func TestAPI(t *testing.T) {
-
-	gkeTF, err := UnmarshalGkeTF("../../examples/example.yaml")
-
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if gkeTF.Name == "" {
-		t.Fatal("gkeTF.Name is empty")
-	}
-
-}

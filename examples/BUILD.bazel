@@ -12,20 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-kind: gke-cluster
-metadata:
-  name: "test-cluster"
-spec:
-  private: false # this can be removed, but I need it because of CFT problem
-  region: "us-west1"
-  network:
-    metadata:
-      name: my-network
-    spec:
-      subnetName: my-subnet
-      subnetRange: "10.0.0.0/24"
-      podSubnetRange: "10.1.0.0/16"
-      serviceSubnetRange: "10.2.0.0/20"
-  nodePools:
-    - metadata:
-        name: my-node-pool
+# Consuming the above md5_sum rule directly into the data deps of a sh_test results in the
+# files just not appearing, and the dependancy not triggering.
+# If we wrap it in a filegroup first however it just works.
+filegroup(
+    name = "yaml",
+    testonly = True,
+    srcs = [
+        "example.yaml",
+        "test-data.yaml",
+        "public-example.yaml",
+        "min-example.yaml",
+    ],
+    visibility = ["//visibility:public"],
+)

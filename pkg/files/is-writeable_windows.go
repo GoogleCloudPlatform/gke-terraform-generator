@@ -16,6 +16,8 @@ limitations under the License.
 
 package files
 
+// IsWritable checks to see if a user has permissions to write a file
+// to a directory.
 func IsWritable(path string) (isWritable bool, err error) {
 	return isWritableDirectory(path)
 }

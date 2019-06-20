@@ -32,7 +32,7 @@ go_library(
 
 go_embed_data(
     name = "gke_network",
-    src = ":gke-network.tf",
+    src = ":network.tf.tmpl",
     package = "terraform",
     string = True,
     var = "GKENetworkTF",
@@ -40,7 +40,7 @@ go_embed_data(
 
 go_embed_data(
     name = "gke_outputs",
-    src = ":gke-outputs.tf",
+    src = ":outputs.tf.tmpl",
     package = "terraform",
     string = True,
     var = "GKEOutputsTF",
@@ -50,7 +50,7 @@ go_embed_data(
 
 go_embed_data(
     name = "gke_variables",
-    src = ":variables.tf",
+    src = ":variables.tf.tmpl",
     package = "terraform",
     string = True,
     var = "GKEVariablesTF",
@@ -58,7 +58,7 @@ go_embed_data(
 
 go_embed_data(
     name = "gke_main",
-    src = ":gke-main.tf",
+    src = ":main.tf.tmpl",
     package = "terraform",
     string = True,
     var = "GKEMainTF",

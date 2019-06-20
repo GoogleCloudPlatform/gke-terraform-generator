@@ -12,12 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Consuming the above md5_sum rule directly into the data deps of a sh_test results in the
-# files just not appearing, and the dependancy not triggering.
-# If we wrap it in a filegroup first however it just works.
-filegroup(
-    name = "test_script",
-    testonly = True,
-    srcs = ["tf_wrapper.sh"],
-    visibility = ["//visibility:public"],
-)
+kind: gke-cluster
+metadata:
+  name: "test-cluster"
+spec:
+  private: false
+  region: "us-west1"
+  network:
+    metadata:
+      name: my-network
+    spec:
+      subnetName: my-subnet
+      subnetRange: "10.0.0.0/24"
+      podSubnetRange: "10.1.0.0/16"
+      serviceSubnetRange: "10.2.0.0/20"
+      masterIPV4CIDRBlock: "172.16.0.16/28"
+  nodePools:
+    - metadata:
+        name: my-node-pool

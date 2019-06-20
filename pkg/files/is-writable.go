@@ -1,3 +1,5 @@
+// +build !windows
+
 /*
 Copyright 2018 Google LLC
 
@@ -14,8 +16,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// +build !windows
-
 package files
 
 import (
@@ -25,6 +25,8 @@ import (
 	"k8s.io/klog"
 )
 
+// IsWritable checks to see if a user has permissions to write a file
+// to a directory.
 func IsWritable(path string) (isWritable bool, err error) {
 	isWritable = false
 
@@ -37,17 +39,16 @@ func IsWritable(path string) (isWritable bool, err error) {
 
 	var stat syscall.Stat_t
 	if err = syscall.Stat(path, &stat); err != nil {
-		klog.Error("Unable to get stat")
+		klog.Errorf("Error to getting stat: %v", err)
 		return
 	}
 
 	err = nil
 	if uint32(os.Geteuid()) != stat.Uid {
 		isWritable = false
-		klog.Error("User doesn't have permission to write to this directory")
+		klog.Errorf("User doesn't have permission to write to this directory: %s", path)
 		return
 	}
 
-	isWritable = true
-	return
+	return true, nil
 }

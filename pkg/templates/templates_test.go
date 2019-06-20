@@ -19,12 +19,18 @@ package templates
 import (
 	"io/ioutil"
 	"partner-code.googlesource.com/gke-terraform-generator/pkg/api"
+	"partner-code.googlesource.com/gke-terraform-generator/pkg/terraform"
+	"strings"
 	"testing"
 )
 
+// TODO implement https://github.com/hashicorp/hcl/blob/master/decoder_test.go
+
+
 func TestTemplates(t *testing.T) {
 
-	gkeTF, err := api.UnmarshalGkeTF("../api/testdata/example.yaml")
+	configFile := "../../examples/public-example.yaml"
+	gkeTF, err := api.UnmarshalGkeTF(configFile)
 
 	if err != nil {
 		t.Fatal(err)
@@ -38,6 +44,14 @@ func TestTemplates(t *testing.T) {
 		t.Fatal("gkeTF.Name is empty")
 	}
 
+	if gkeTF.Spec.Private == "true" {
+		t.Fatal("gkeTF.Spec.Private should be false")
+	}
+
+	if err := api.SetApiDefaultValues(gkeTF, configFile); err != nil {
+		t.Fatalf("error merging defaults: %v", gkeTF)
+	}
+
 	testTemplates := NewGKETemplates()
 	err = testTemplates.CopyTo(".", gkeTF)
 
@@ -45,32 +59,65 @@ func TestTemplates(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, err = ioutil.ReadFile("main.tf")
+	b, err := ioutil.ReadFile("main.tf")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	/*
-		tf := "../../../terraform/terraform"
+	s := string(b)
 
-		_, err = os.Stat(tf)
-		if err != nil {
-			t.Fatal("terraform doesn't exist")
-		}
+	public := "source = \"terraform-google-modules/kubernetes-engine/google\""
+	if !strings.Contains(s, public) {
 
-		cmd := exec.Command("testdata/tf_wrapper.sh", tf)
+		t.Log(s)
+		t.Log(terraform.GKEMainTF)
+		t.Fatalf("template does not contain the correct source provider")
+	}
+}
 
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		err = cmd.Run()
-		if err != nil {
-			t.Fatalf("terraform init failed with %s\n", err)
-		}
+func TestPrivateTemplate(t *testing.T) {
 
-		out, err := exec.Command(tf, "init").Output()
-		if err != nil {
-			t.Logf("terraform plan %s\n", out)
-			t.Fatalf("terraform plan failed with %s\n", err)
-		}
-	*/
+	configFile := "../../examples/example.yaml"
+	gkeTF, err := api.UnmarshalGkeTF(configFile)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if gkeTF == nil {
+		t.Fatal("unable to load file")
+	}
+
+	if gkeTF.Name == "" {
+		t.Fatal("gkeTF.Name is empty")
+	}
+
+	if gkeTF.Spec.Private == "false" {
+		t.Fatal("gkeTF.Spec.Private should be true")
+	}
+
+	if err := api.SetApiDefaultValues(gkeTF, configFile); err != nil {
+		t.Fatalf("error merging defaults: %v", gkeTF)
+	}
+
+	testTemplates := NewGKETemplates()
+	err = testTemplates.CopyTo(".", gkeTF)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	b, err := ioutil.ReadFile("main.tf")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	s := string(b)
+
+	private := "source = \"terraform-google-modules/kubernetes-engine/google//modules/private-cluster\""
+	if !strings.Contains(s, private) {
+		t.Log(s)
+		t.Log(terraform.GKEMainTF)
+		t.Fatalf("template does not contain the private source provider")
+	}
 }

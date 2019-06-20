@@ -34,6 +34,13 @@ gazelle-update-mod:
 build:
 	bazel build //...
 
+.PHONY: cross-build
+cross-build:
+	bazel build --features=pure --platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 //...
+	bazel build --features=pure --platforms=@io_bazel_rules_go//go/toolchain:darwin_amd64 //...
+	bazel build --features=pure --platforms=@io_bazel_rules_go//go/toolchain:windows_amd64 //...
+
+
 .PHONY: test
 test:
 	bazel test --test_verbose_timeout_warnings //...
@@ -47,7 +54,7 @@ gen:
 	bazel-bin/darwin_amd64_stripped/gke-tf gen -d /tmp/tf/ -f examples/example.yaml -p ${PROJECT}
 
 lint: check_shell check_python check_golang check_terraform check_docker \
-	check_base_files test_check_headers check_headers check_trailing_whitespace
+	check_base_files check_headers check_trailing_whitespace
 
 # The .PHONY directive tells make that this isn't a real target and so
 # the presence of a file named 'check_shell' won't cause this target to stop
@@ -83,11 +90,6 @@ check_shebangs:
 .PHONY: check_trailing_whitespace
 check_trailing_whitespace:
 	@source test/make.sh && check_trailing_whitespace
-
-.PHONY: test_check_headers
-test_check_headers:
-	@echo "Testing the validity of the header check"
-	@python test/test_verify_boilerplate.py
 
 .PHONY: check_headers
 check_headers:

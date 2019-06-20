@@ -55,10 +55,8 @@ function check_terraform() {
 # This function runs 'go fmt' and 'go vet' on eery file
 # that ends in '.go'
 function golang() {
-  echo "Running go fmt and go vet"
+  echo "Running go fmt"
   find . -name "*.go" -exec go fmt {} \;
-# TODO no sure how to do this with bazel
-#find . -name "*.go" -exec go vet {} \;
 }
 
 # This function runs the flake8 linter on every file
@@ -80,7 +78,7 @@ function check_shell() {
 # There are some exclusions
 function check_trailing_whitespace() {
   echo "The following lines have trailing whitespace"
-  grep -r '[[:blank:]]$' --exclude-dir=".terraform" --exclude="*.png" --exclude-dir=".git" --exclude="*.pyc" .
+  grep -r '[[:blank:]]$' --exclude-dir=".terraform" --exclude-dir="bazel-*" --exclude="*.png" --exclude-dir=".git" --exclude="*.pyc" .
   rc=$?
   if [ $rc = 0 ]; then
     exit 1

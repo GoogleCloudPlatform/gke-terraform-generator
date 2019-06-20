@@ -1,18 +1,18 @@
-/**
- * Copyright 2018 Google LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/*
+Copyright 2018 Google LLC
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    https://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
 
 provider "google" {
   version = "2.7.0"
@@ -27,21 +27,24 @@ provider "google-beta" {
 }
 
 // TODO: - setup add capability to use remote state
+// TODO: have the TF match terraform fmt
 
 module "gke" {
-{{- if .Spec.Private }}
-  source = "terraform-google-modules/kubernetes-engine/google"
-{{- else}}
+{{- if eq .Spec.Private "true" }}
+  // source = "/Users/chlove/Workspace/src/github.com/terraform-google-modules/terraform-google-kubernetes-engine/modules/beta-private-cluster"
   source = "terraform-google-modules/kubernetes-engine/google//modules/private-cluster"
   enable_private_endpoint    = "true"
   enable_private_nodes       = "true"
-  // TODO make this configurable
-  master_ipv4_cidr_block     = "10.0.0.0/28"
+  {{- if .Spec.Network.Spec.MasterIPV4CIDRBlock }}
+  master_ipv4_cidr_block     = "{{ .Spec.Network.Spec.MasterIPV4CIDRBlock }}"
+  {{- end }}
+{{- else }}
+  source = "terraform-google-modules/kubernetes-engine/google"
 {{- end}}
 
   project_id = "${var.project_id}"
   name       = "${var.cluster_name}"
-  region   = "${var.region}"
+  region     = "${var.region}"
 {{- if .Spec.Zones }}
   zones   = "${var.zones}" // FIXME we may need to convert a list to a string here
 {{- end}}
@@ -53,19 +56,74 @@ module "gke" {
   ip_range_pods     = "${module.gke-network.network_name}-${var.cluster_name}-pod-range"
   ip_range_services = "${module.gke-network.network_name}-${var.cluster_name}-service-range"
 
-  /* dashboard is being depricated, so do not install it */
+  /* dashboard is being deprecated, so do not install it */
   kubernetes_dashboard        = "false"
   http_load_balancing         = "{{.Spec.Addons.HTTPLoadBalancing}}"
-  network_policy              = "{{.Spec.Addons.NetworkPolicies}}"
+  network_policy              = "{{.Spec.Addons.NetworkPolicy}}"
   horizontal_pod_autoscaling  = "{{.Spec.Addons.HPA}}"
   // TODO add psp, binary auth, cloudrun, istio
   // TODO double check I am not missing anything else
   // enable_binary_authorization = "{{.Spec.Addons.BinaryAuth}}"
   // istio = "{{.Spec.Addons.Istio}}"
   // cloudrun = "{{.Spec.Addons.Cloudrun}}"
+  // pod_security_policy = "{{.Spec.Addons.PodSecurityPolicy}}"
 
-  service_account          = "create"
+  service_account          = "{{.Spec.ServiceAccount}}"
   remove_default_node_pool = "{{.Spec.RemoveDefaultNodePool}}"
+  {{- if .Spec.Description }}
+  description = "{{.Spec.Description}}"
+  {{- end }}
+  {{- if .Spec.IpMasqLinkLocal }}
+  ip_masq_link_local = "{{.Spec.IpMasqLinkLocal}}"
+  {{- end }}
+  {{- if .Spec.IpMasqRsyncInterval }}
+  ip_masq_rsync_interval = "{{.Spec.IpMasqRsyncInterval}}"
+  {{- end }}
+  {{- if .Spec.MaintenanceStartTime }}
+  maintenance_start_time = "{{.Spec.MaintenanceStartTime}}"
+  {{- end }}
+  {{- if .Spec.IssueClientCertificate }}
+  issue_client_certificate = "{{.Spec.IssueClientCertificate}}"
+  {{- end }}
+  {{- if .Spec.NodeVersion }}
+  node_version = "{{.Spec.NodeVersion}}"
+  {{- end }}
+  {{- if .Spec.DeployUsingPrivateEndpoint }}
+  deploy_using_private_endpoint = "{{.Spec.DeployUsingPrivateEndpoint}}"
+  {{- end }}
+
+  {{- if .Spec.MasterAuthorizedNetworksConfig }}
+  master_authorized_networks_config = [{
+    cidr_blocks = [
+      {{- range .Spec.MasterAuthorizedNetworksConfig }}
+      {
+        cidr_block = "{{ .CidrBlock }}",
+        display_name = "{{ .DisplayName }}",
+      },
+      {{- end }}
+     ],
+  }]
+  {{- end }}
+  {{- if .Spec.DatabaseEncryption }}
+  database_encryption = [
+    {
+      state = "{{ .DatabaseEncryption.State }}",
+      key_name = "{{ .DatabaseEncryption.KeyName }}"
+    }
+  ]
+  {{- end }}
+  {{- if .Spec.StubDomains }}
+  stub_domains = {
+    {{- range .Spec.StubDomains }}
+      {{ .ObjectMeta.Name }} = [
+        {{- range .Spec.DNSServerIPAddresses }}
+        "{{ .}}",
+        {{- end }}
+      ]
+    {{- end }}
+  }
+  {{- end }}
+
 
   disable_legacy_metadata_endpoints = "true"
 
@@ -78,8 +136,8 @@ module "gke" {
       name               = "{{.Name}}"
       machine_type       = "{{.Spec.MachineType}}"
       {{- if .Spec.AcceleratorType}}
-      accelerator_type  = "{{.Spec.AcceleratorType}}"
-      {{ end }}
+      accelerator_type   = "{{.Spec.AcceleratorType}}"
+      {{- end }}
       min_count          = {{.Spec.MinCount}}
       max_count          = {{.Spec.MaxCount}}
       disk_size_gb       = {{.Spec.DiskSizeGB}}

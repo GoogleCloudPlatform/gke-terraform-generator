@@ -27,13 +27,47 @@ func ValidateYamlInput(gkeTF *GkeTF) error {
 	validate := validator.New()
 
 	if err := validate.Struct(gkeTF.Spec); err != nil {
-		// TODO I this I need to check this casting
-		validationErrors := err.(validator.ValidationErrors)
-		if validationErrors == nil {
+		validationErrors, ok := err.(validator.ValidationErrors)
+		if !ok || validationErrors == nil {
 			return err
 		}
 		klog.Errorf("error validating gke tf struct: %v", validationErrors)
 		return validationErrors
+	}
+
+	// TODO we can remove this duplicated code with a refactor, for now it is ok
+
+	if gkeTF.Spec.DatabaseEncryption != nil {
+		if err := validate.Struct(gkeTF.Spec.DatabaseEncryption); err != nil {
+			validationErrors, ok := err.(validator.ValidationErrors)
+			if !ok || validationErrors == nil {
+				return err
+			}
+			klog.Errorf("error validating gke tf databaseEncryption struct: %v", validationErrors)
+			return validationErrors
+		}
+	}
+
+	if gkeTF.Spec.MasterAuthorizedNetworksConfig != nil {
+		if err := validate.Struct(gkeTF.Spec.MasterAuthorizedNetworksConfig); err != nil {
+			validationErrors, ok := err.(validator.ValidationErrors)
+			if !ok || validationErrors == nil {
+				return err
+			}
+			klog.Errorf("error validating gke tf masterAuthorizedNetworksConfig struct: %v", validationErrors)
+			return validationErrors
+		}
+	}
+
+	if gkeTF.Spec.StubDomains != nil {
+		if err := validate.Struct(gkeTF.Spec.StubDomains); err != nil {
+			validationErrors, ok := err.(validator.ValidationErrors)
+			if !ok || validationErrors == nil {
+				return err
+			}
+			klog.Errorf("error validating gke tf stubDomains struct: %v", validationErrors)
+			return validationErrors
+		}
 	}
 
 	return nil

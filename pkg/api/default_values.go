@@ -46,15 +46,15 @@ func SetApiDefaultValues(gkeTF *GkeTF, configFile string) error {
 	}
 
 	if err := defaults.Set(defaultSpec); err != nil {
-		klog.Errorf("error setting defaults: %v", err)
+		klog.Errorf("error setting defaults for defaultSepc: %v", err)
 		return err
 	}
 	if err := defaults.Set(&defaultNodePool.Spec); err != nil {
-		klog.Errorf("error setting defaults: %v", err)
+		klog.Errorf("error setting defaults for defaultNodePool.Spec: %v", err)
 		return err
 	}
 	if err := defaults.Set(defaultSpec.Spec.Addons); err != nil {
-		klog.Errorf("error setting defaults: %v", err)
+		klog.Errorf("error setting defaults for defaultSpec.Spec.Addons: %v", err)
 		return err
 	}
 
@@ -85,30 +85,21 @@ func SetApiDefaultValues(gkeTF *GkeTF, configFile string) error {
 	}
 
 	// Go through and reset values overwritten by defaults
-	if original.Spec.Private != nil {
-		*gkeTF.Spec.Private = *original.Spec.Private
-	}
 	if original.Spec.Regional != nil {
-		*gkeTF.Spec.Regional = *original.Spec.Private
+		*gkeTF.Spec.Regional = *original.Spec.Regional
 	}
 	if original.Spec.RemoveDefaultNodePool != nil {
-		*gkeTF.Spec.RemoveDefaultNodePool = *original.Spec.Private
+		*gkeTF.Spec.RemoveDefaultNodePool = *original.Spec.RemoveDefaultNodePool
 	}
 	if original.Spec.Addons != nil {
 		if original.Spec.Addons.VPA != nil {
 			*gkeTF.Spec.Addons.VPA = *original.Spec.Addons.VPA
 		}
-		if original.Spec.Addons.PodServicePolicies != nil {
-			*gkeTF.Spec.Addons.PodServicePolicies = *original.Spec.Addons.PodServicePolicies
+		if original.Spec.Addons.PodSecurityPolicy != nil {
+			*gkeTF.Spec.Addons.PodSecurityPolicy = *original.Spec.Addons.PodSecurityPolicy
 		}
-		if original.Spec.Addons.NetworkPolicies != nil {
-			*gkeTF.Spec.Addons.NetworkPolicies = *original.Spec.Addons.NetworkPolicies
-		}
-		if original.Spec.Addons.Monitoring != nil {
-			*gkeTF.Spec.Addons.Monitoring = *original.Spec.Addons.Monitoring
-		}
-		if original.Spec.Addons.Logging != nil {
-			*gkeTF.Spec.Addons.Logging = *original.Spec.Addons.Logging
+		if original.Spec.Addons.NetworkPolicy != nil {
+			*gkeTF.Spec.Addons.NetworkPolicy = *original.Spec.Addons.NetworkPolicy
 		}
 		if original.Spec.Addons.Istio != nil {
 			*gkeTF.Spec.Addons.Istio = *original.Spec.Addons.Istio

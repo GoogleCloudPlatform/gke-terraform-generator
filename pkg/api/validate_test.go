@@ -18,9 +18,10 @@ package api
 
 import "testing"
 
+var configFile = "../../examples/example.yaml"
+
 func TestValidate(t *testing.T) {
 
-	configFile := "testdata/example.yaml"
 	gkeTF := parseYAML(t, configFile)
 
 	if err := SetApiDefaultValues(gkeTF, configFile); err != nil {
@@ -34,7 +35,6 @@ func TestValidate(t *testing.T) {
 
 func TestValidateImageType(t *testing.T) {
 
-	configFile := "testdata/example.yaml"
 	gkeTF := parseYAML(t, configFile)
 
 	nodes := *gkeTF.Spec.NodePools
@@ -51,12 +51,12 @@ func TestValidateImageType(t *testing.T) {
 }
 
 func TestCIDR(t *testing.T) {
-	configFile := "testdata/example.yaml"
 	gkeTF := parseYAML(t, configFile)
 
 	gkeTF.Spec.Network.Spec.SubnetRange = "bad"
 	gkeTF.Spec.Network.Spec.PodSubnetRange = "bad"
 	gkeTF.Spec.Network.Spec.ServiceSubnetRange = "bad"
+	gkeTF.Spec.Network.Spec.MasterIPV4CIDRBlock = "bad"
 
 	if err := SetApiDefaultValues(gkeTF, configFile); err != nil {
 		t.Fatalf("failed %v", err)
@@ -68,10 +68,32 @@ func TestCIDR(t *testing.T) {
 
 }
 
+
+func TestValidation(t *testing.T) {
+	gkeTF := parseYAML(t, "../../examples/test-data.yaml")
+	if err := SetApiDefaultValues(gkeTF, configFile); err != nil {
+		t.Fatalf("failed %v", err)
+	}
+
+	if err := ValidateYamlInput(gkeTF); err == nil {
+		t.Fatal("this should have passed")
+	}
+
+	domains := *gkeTF.Spec.StubDomains
+	domains[0].DNSServerIPAddresses = &[]string{"foo", "bar"}
+	gkeTF.Spec.StubDomains = &domains
+
+	if err := ValidateYamlInput(gkeTF); err != nil {
+		domains = *gkeTF.Spec.StubDomains
+		t.Logf("data: %v", domains[0].DNSServerIPAddresses)
+		t.Fatal("this should have failed")
+	}
+}
+
 func parseYAML(t *testing.T, configFile string) *GkeTF {
 	gkeTF, err := UnmarshalGkeTF(configFile)
-	if gkeTF == nil {
-		t.Fatal("gkeTf is nil")
+	if err != nil {
+		t.Fatalf("err: %v", err)
 	}
 	gkeTF.Spec.ProjectId = "my project"
 	if err != nil {

@@ -20,24 +20,23 @@ import (
 	"testing"
 )
 
+// TODO add more tests
+
 func TestDefaults(t *testing.T) {
 
-	var configFile = "testdata/example.yaml"
+	var configFile = "../../examples/example.yaml"
 	gkeTF, err := UnmarshalGkeTF(configFile)
 
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	*gkeTF.Spec.Private = false
-	*gkeTF.Spec.Addons.Autoscaling = false
-
 	if err := SetApiDefaultValues(gkeTF, configFile); err != nil {
 		t.Fatalf("error merging defaults: %v", gkeTF)
 	}
 
-	if *gkeTF.Spec.Private != false {
-		t.Fatal("*gkeTF.Spec.Private is not false")
+	if gkeTF.Spec.Private == "false" {
+		t.Fatal("gkeTF.Spec.Private is not set to true and it should be")
 	}
 
 	t.Logf("*gkeTF.Spec.Addons.Autoscaling: %v", *gkeTF.Spec.Addons.Autoscaling)
@@ -53,7 +52,7 @@ func TestDefaults(t *testing.T) {
 
 func TestDefaultsSmall(t *testing.T) {
 
-	var configFile = "testdata/min-example.yaml"
+	var configFile = "../../examples/min-example.yaml"
 	gkeTF, err := UnmarshalGkeTF(configFile)
 
 	if err != nil {

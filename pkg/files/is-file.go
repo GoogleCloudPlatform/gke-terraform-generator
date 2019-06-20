@@ -22,20 +22,19 @@ import (
 	"k8s.io/klog"
 )
 
-func IsFile(path string) (isWritable bool, err error) {
-	isWritable = false
+// IsFile checks to see if a file exists on a defined path.
+func IsFile(path string) (isFile bool, err error) {
+	isFile = false
 	info, err := os.Stat(path)
 	if err != nil {
-		klog.Error("File doesn't exist")
+		klog.Errorf("File doesn't exist: %s", path)
 		return
 	}
 
-	err = nil
 	if info.IsDir() {
 		klog.Error("Path is a directory was expecting a file")
 		return
 	}
 
-	isWritable = true
-	return
+	return true, nil
 }

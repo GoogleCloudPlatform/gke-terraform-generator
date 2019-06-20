@@ -37,7 +37,7 @@ go_test(
     name = "go_validate_test",
     size = "small",
     srcs = ["validate_test.go"],
-    data = ["//pkg/api/testdata:test_yaml"],
+    data = ["//examples:yaml"],
     embed = [":go_default_library"],
 )
 
@@ -45,7 +45,7 @@ go_test(
     name = "go_defaults_values_test",
     size = "small",
     srcs = ["default_values_test.go"],
-    data = ["//pkg/api/testdata:test_yaml"],
+    data = ["//examples:yaml"],
     embed = [":go_default_library"],
 )
 
@@ -53,18 +53,18 @@ go_test(
     name = "go_api_test",
     size = "small",
     srcs = ["api_test.go"],
-    data = ["//pkg/api/testdata:test_yaml"],
+    data = ["//examples:yaml"],
     embed = [":go_default_library"],
 )
 
 go_test(
     name = "go_default_test",
+    size = "small",
     srcs = [
         "api_test.go",
         "default_values_test.go",
         "validate_test.go",
     ],
-    data = ["//pkg/api/testdata:test_yaml"],
+    data = ["//examples:yaml"],
     embed = [":go_default_library"],
-    size="small"
 )

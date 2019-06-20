@@ -14,22 +14,26 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package api
-
-import "testing"
-
-// TODO add more tests
-
-func TestAPI(t *testing.T) {
-
-	gkeTF, err := UnmarshalGkeTF("../../examples/example.yaml")
-
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if gkeTF.Name == "" {
-		t.Fatal("gkeTF.Name is empty")
-	}
-
+variable "cluster_name" {
+  description = ""
+  default = "{{.ObjectMeta.Name}}"
 }
+
+variable "project_id" {
+  description = ""
+  default = "{{.Spec.ProjectId}}"
+}
+
+variable "region" {
+  description = ""
+  default = "{{.Spec.Region}}"
+}
+
+{{- if .Spec.Zones }}
+variable "zones" {
+  description = ""
+  // TODO fix bug when we have a single zone
+  // TODO fix bug when we do not have zones
+  default = ["{{StringsJoin .Spec.Zones "\",\""}}"]
+}
+{{- end}}
