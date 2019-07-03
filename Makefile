@@ -51,7 +51,7 @@ clean:
 
 .PHONY: gen
 gen:
-	bazel-bin/darwin_amd64_stripped/gke-tf gen -d /tmp/tf/ -f examples/example.yaml -p ${PROJECT}
+	bazel-bin/darwin_amd64_stripped/gke-tf gen -d /tmp/tf/ -f examples/example.yaml -o -p ${PROJECT}
 
 lint: check_shell check_python check_golang check_terraform check_docker \
 	check_base_files check_headers check_trailing_whitespace

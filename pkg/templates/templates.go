@@ -20,6 +20,7 @@ package templates
 
 import (
 	"bufio"
+	"errors"
 	"k8s.io/klog"
 	"os"
 	"path"
@@ -40,26 +41,26 @@ type GKETemplates struct {
 }
 
 var templates =
-	&GKETemplates {
-	[]*TerraformTemplate{
-		{
-			"main.tf",
-			terraform.GKEMainTF,
+		&GKETemplates {
+		[]*TerraformTemplate{
+			{
+				"main.tf",
+				terraform.GKEMainTF,
+			},
+			{
+				"network.tf",
+				terraform.GKENetworkTF,
+			},
+			{
+				"outputs.tf",
+				terraform.GKEOutputsTF,
+			},
+			{
+				"variables.tf",
+				terraform.GKEVariablesTF,
+			},
 		},
-		{
-			"network.tf",
-			terraform.GKENetworkTF,
-		},
-		{
-			"outputs.tf",
-			terraform.GKEOutputsTF,
-		},
-		{
-			"variables.tf",
-			terraform.GKEVariablesTF,
-		},
-	},
-}
+	}
 
 func NewGKETemplates() *GKETemplates {
 	return templates
@@ -67,17 +68,22 @@ func NewGKETemplates() *GKETemplates {
 
 // CopyTo is used to copy all of the templates in the
 // template directory to the given destination
-func (gkeTemplates *GKETemplates) CopyTo(dst string, cluster *api.GkeTF) error {
-	return gkeTemplates.processTemplates(dst, cluster)
+func (gkeTemplates *GKETemplates) CopyTo(allowOverwrite bool, dst string, cluster *api.GkeTF) error {
+	return gkeTemplates.processTemplates(allowOverwrite, dst, cluster)
 }
 
-func (gkeTemplates *GKETemplates) processTemplates(dst string, cluster *api.GkeTF) error {
+func (gkeTemplates *GKETemplates) processTemplates(allowOverwrite bool, dst string, cluster *api.GkeTF) error {
 	// TODO check if file exists prompt to override
 	// TODO refactor to access a bufio.NewWriter interface
 	// TODO need to be able to override file writing in unit tests
 
 	for _, t := range gkeTemplates.Templates {
 		fileName := path.Join(dst, t.FileName)
+		if !allowOverwrite{
+			if f, err := os.Open(fileName); f != nil && err == nil {
+				return errors.New("File already exists and overwrites not allowed.")
+			}
+		}
 		f, err := os.Create(fileName)
 		if err != nil {
 			return err

@@ -38,6 +38,8 @@ var (
 	configFile string
 	// projectId is the gcp project id.
 	projectId string
+	// overwriteFile boolean determines whether TF files can be written over
+	overwriteFile bool
 	// gkeTF is the api cluster representation.
 	gkeTF *api.GkeTF
 	// genCommend command to generate GKE Terraform file
@@ -69,6 +71,7 @@ func init() {
 	genCommand.Flags().StringVarP(&outDir, "directory", "d", defaultDir, "output directory")
 	genCommand.Flags().StringVarP(&configFile, "file", "f", "", "config yaml file")
 	genCommand.Flags().StringVarP(&projectId, "project-id", "p", "", "gcp project id")
+	genCommand.Flags().BoolVarP(&overwriteFile, "overwrite-file", "o", false, "overwrite file flag")
 	if err := cobra.MarkFlagRequired(genCommand.Flags(), "file"); err != nil {
 		exitWithError(err)
 	}
@@ -112,7 +115,7 @@ func NewGen(cmd *cobra.Command, args []string) {
 	// this creates a NewGKETemplates struct and runs CopyTo.
 	// This func does all the grunt work of processing each go template and writing the
 	// terraform results to a file.
-	err = templates.NewGKETemplates().CopyTo(outDir, gkeTF)
+	err = templates.NewGKETemplates().CopyTo(overwriteFile, outDir, gkeTF)
 	if err != nil {
 		klog.Errorf("Error creating terraform: %v", err)
 		os.Exit(1)

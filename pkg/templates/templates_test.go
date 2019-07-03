@@ -53,7 +53,7 @@ func TestTemplates(t *testing.T) {
 	}
 
 	testTemplates := NewGKETemplates()
-	err = testTemplates.CopyTo(".", gkeTF)
+	err = testTemplates.CopyTo(false, ".", gkeTF)
 
 	if err != nil {
 		t.Fatal(err)
@@ -101,7 +101,7 @@ func TestPrivateTemplate(t *testing.T) {
 	}
 
 	testTemplates := NewGKETemplates()
-	err = testTemplates.CopyTo(".", gkeTF)
+	err = testTemplates.CopyTo(true, ".", gkeTF)
 
 	if err != nil {
 		t.Fatal(err)
