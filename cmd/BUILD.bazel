@@ -18,6 +18,7 @@ go_library(
     name = "go_default_library",
     srcs = [
         "cmd.go",
+        "doc.go",
         "gen.go",
     ],
     importpath = "partner-code.googlesource.com/gke-terraform-generator/cmd",

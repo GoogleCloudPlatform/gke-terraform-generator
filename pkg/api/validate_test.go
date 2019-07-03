@@ -16,7 +16,10 @@ limitations under the License.
 
 package api
 
-import "testing"
+import (
+	"gopkg.in/go-playground/validator.v9"
+	"testing"
+)
 
 var configFile = "../../examples/example.yaml"
 
@@ -68,7 +71,6 @@ func TestCIDR(t *testing.T) {
 
 }
 
-
 func TestValidation(t *testing.T) {
 	gkeTF := parseYAML(t, "../../examples/test-data.yaml")
 	if err := SetApiDefaultValues(gkeTF, configFile); err != nil {
@@ -80,14 +82,52 @@ func TestValidation(t *testing.T) {
 	}
 
 	domains := *gkeTF.Spec.StubDomains
-	domains[0].DNSServerIPAddresses = &[]string{"foo", "bar"}
+	domains[0].DNSServerIPAddresses = []string{"foo", "bar"}
 	gkeTF.Spec.StubDomains = &domains
 
-	if err := ValidateYamlInput(gkeTF); err != nil {
-		domains = *gkeTF.Spec.StubDomains
-		t.Logf("data: %v", domains[0].DNSServerIPAddresses)
-		t.Fatal("this should have failed")
+	err := validator.New().Var(domains[0].DNSServerIPAddresses, "required,dive,ipv4")
+	if err == nil {
+		t.Fatalf("Validation should have failed, as foo is not a ipv4")
 	}
+
+	if err := ValidateYamlInput(gkeTF); err == nil {
+		t.Fatal("this should have failed, not validating StubDomains correctly")
+	}
+}
+
+func TestValidateIP(t *testing.T) {
+	myEmail := "joeybloggs@gmail.com"
+
+	errs := validator.New().Var(myEmail, "required,email")
+
+	if errs != nil {
+		t.Fatalf("err: %v", errs)
+	}
+
+	errs = validator.New().Var("foo", "required,ipv4")
+
+	if errs == nil {
+		t.Fatal("Validation should have failed, as foo is not a ipv4")
+	}
+
+	errs = validator.New().Var("73.95.44.185", "required,ipv4")
+
+	if errs != nil {
+		t.Fatalf("err: %v", errs)
+	}
+
+	ips := []string{"foo", "127.0.0.1", ""}
+
+	errs = validator.New().Var(ips, "required,dive,ipv4")
+	if errs == nil {
+		t.Fatal("Validation should have failed, as foo is not a ipv4")
+	}
+
+	errs = validator.New().Var(&ips, "required,dive,ipv4")
+	if errs == nil {
+		t.Fatalf("Validation should have failed, as foo is not a ipv4 %v", errs)
+	}
+
 }
 
 func parseYAML(t *testing.T, configFile string) *GkeTF {

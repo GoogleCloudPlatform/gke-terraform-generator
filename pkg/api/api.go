@@ -32,7 +32,7 @@ type GkeTF struct {
 	TypeMeta   `yaml:",inline"`
 	ObjectMeta `yaml:"metadata,omitempty"`
 	// ClusterSpec include the base information modeling a GKE Cluster.
-	Spec ClusterSpec `yaml:"spec" validate:"required"`
+	Spec ClusterSpec `yaml:"spec" validate:"required,dive"`
 }
 
 // ClusterSpec API struct that represents a cluster.
@@ -60,7 +60,7 @@ type ClusterSpec struct {
 	// Zones are the GCP zones that the cluster runs inside of.
 	Zones *[]string `yaml:"zones"`
 	// Taints are a slice TaintSpec that model Kubernetes taints that are applied to all nodes.
-	Taints *[]TaintSpec `yaml:"taints"`
+	Taints *[]TaintSpec `yaml:"taints" validate:"omitempty,dive"`
 	// OauthScopes is a slice of oauth scopes that are applied to a all nodes.  This slice defaults to the base required oauth
 	// scopes.
 	OauthScopes *[]string `yaml:"oauthScopes" default:"[\"https://www.googleapis.com/auth/trace.append\",\"https://www.googleapis.com/auth/service.management.readonly\",\"https://www.googleapis.com/auth/monitoring\",\"https://www.googleapis.com/auth/devstorage.read_only\",\"https://www.googleapis.com/auth/servicecontrol\"]"`
@@ -68,12 +68,12 @@ type ClusterSpec struct {
 	Tags *[]string `yaml:"tags"`
 
 	// Labels is a map of labels that are applied to all node.  Labels are in the form of key and value strings.
-	Labels *map[string]string `yaml:"labels"`
+	Labels *map[string]string `yaml:"labels" validate:"omitempty,dive"`
 	// NodePools is a slice of NodePoolSpec struts that models a nodepool in GKE.
 	NodePools *[]*GkeNodePool `yaml:"nodePools" validate:"required,dive"`
 	// Metadata is a map of GCP compute instance metadata that will be applied to all compute instances.
 	// This allows you to do things like start scripts.
-	Metadata *map[string]string `yaml:"metadata"`
+	Metadata *map[string]string `yaml:"metadata" validate:"omitempty,dive"`
 
 	// TODO test below values
 
@@ -90,13 +90,13 @@ type ClusterSpec struct {
 
 	// MasterAuthorizedNetworksConfig is a slice of the desired configuration options for master authorized networks.
 	// Omit the nested cidr_blocks attribute to disallow external access (except the cluster node IPs, which GKE automatically whitelists)
-	MasterAuthorizedNetworksConfig *[]MasterAuthorizedNetworksConfigSpec `yaml:"masterAuthorizedNetworksConfig"`
+	MasterAuthorizedNetworksConfig *[]MasterAuthorizedNetworksConfigSpec `yaml:"masterAuthorizedNetworksConfig" validate:"omitempty,dive"`
 
 	// StubDomains and their resolvers to forward DNS queries for a certain domain to an external DNS server.
-	StubDomains *[]StubDomainsSpec `yaml:"stubDomains"`
+	StubDomains *[]StubDomainsSpec `yaml:"stubDomains" validate:"omitempty,dive"`
 
 	// DatabaseEncryption allows a user to configure etcd database encyptions using a provided KMS key name.
-	DatabaseEncryption *DatabaseEncryptionSpec `yaml:"databaseEncryption"`
+	DatabaseEncryption *DatabaseEncryptionSpec `yaml:"databaseEncryption" validate:"omitempty,dive"`
 
 	// NodeVersion is the default kubernetes version of nodes in the node pools.
 	NodeVersion *string `yaml:"nodeVersion"`
@@ -115,7 +115,7 @@ type GkeNetwork struct {
 	ObjectMeta `yaml:"metadata,omitempty"`
 
 	// ClusterSpec include the base information modeling a Network for a GKE Cluster.
-	Spec NetworkSpec `yaml:"spec" validate:"dive"`
+	Spec NetworkSpec `yaml:"spec" validate:"required,dive"`
 }
 
 // NetworkSpec API struct represents a network and subnet that is used for a GKE cluster.
@@ -163,7 +163,7 @@ type DatabaseEncryptionSpec struct {
 type StubDomainsSpec struct {
 	TypeMeta   `yaml:",inline"`
 	ObjectMeta `yaml:"metadata,omitempty"`
-	DNSServerIPAddresses *[]string `yaml:"dnsServerIPAddresses" validate:"required,ip,dive"`
+	DNSServerIPAddresses []string `yaml:"dnsServerIPAddresses" validate:"required,dive,ipv4"`
 }
 
 // NodePoolSpec API struct that represents a GKE Nodepool.
@@ -178,7 +178,7 @@ type NodePoolSpec struct {
 	// MachineType of the nodepool, which defaults to a n1-standard-1. See
 	// https://cloud.google.com/compute/docs/machine-types for more information about
 	// GCP machine types.
-	MachineType string `yaml:"machineType" validate:"required"  default:"n1-standard-1"`
+	MachineType string `yaml:"machineType" default:"n1-standard-1"`
 	// AutoRepair enables GKE's node auto-repair feature that helps keeping the nodes in your
 	// cluster in a healthy, running state.
 	// See https://cloud.google.com/kubernetes-engine/docs/how-to/node-auto-repair.
@@ -200,7 +200,7 @@ type NodePoolSpec struct {
 	Version *string `yaml:"version,omitempty"`
 	// DiskSizeGB is the node disk size.
 	// This value defaults to 100.
-	DiskSizeGB int `yaml:"diskSizeGB" default:"100"`
+	DiskSizeGB int `yaml:"diskSizeGB" default:"100"` // TODO validate that this is a positive number
 	// DiskType is the node disk type.
 	// Values can be pd-ssd or pd-standard, and it defaults to pd-ssd.
 	DiskType string `yaml:"diskType" default:"pd-ssd" validate:"eq=pd-ssd|eq=pd-standard"`
@@ -215,15 +215,15 @@ type NodePoolSpec struct {
 
 	// Tags slice containing node network tags for this specific nodepool.
 	// See https://cloud.google.com/vpc/docs/add-remove-network-tags.
-	Tags *[]string `yaml:"tags" validate:"-"`
+	Tags *[]string `yaml:"tags"`// validate:"omitempty,dive"` // this will cause a panic with validator
 	// OauthScopes is a slice of Oauth Scope URLs that are applied to
 	// the GCP instances in a nodepool.
 	// See https://developers.google.com/identity/protocols/googlescopes
-	OauthScopes *[]string `yaml:"oauthScopes" validate:"omitempty,url"`
+	OauthScopes *[]string `yaml:"oauthScopes"`// validate:"omitempty,dive,url"`
 	// Taints are a slice of TaintSpec structs.
 	// See https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/ and
 	// https://cloud.google.com/kubernetes-engine/docs/how-to/node-taints.
-	Taints *[]TaintSpec `yaml:"taints"`
+	Taints *[]TaintSpec `yaml:"taints"`// validate:"omitempty,dive"`
 	// Labels is a map of GCP instance labels.
 	// See https://cloud.google.com/compute/docs/labeling-resources.
 	Labels   *map[string]string `yaml:"labels"`
@@ -250,6 +250,9 @@ type NodePoolSpec struct {
 //	  effect: "NoSchedule"
 //
 type TaintSpec struct {
+
+	// TODO need validation
+
 	// Key is the key value in a taint.
 	Key string `yaml:"key"`
 	// Value is the value field in a taint.
@@ -293,7 +296,7 @@ type AddonsSpec struct {
 	// Automatically send logs from the cluster to the Google Cloud Logging
 	// API.
 	// include logging.googleapis.com, logging.googleapis.com/kubernetes
-	Logging *string `yaml:"logging,omitempty" default:"logging.googleapis.com/kubernetes"`
+	Logging *string `yaml:"logging,omitempty" default:"logging.googleapis.com/kubernetes"` // TODO validate
 	// Monitoring enables stack driver logging for the cluster.
 	// Default value for Monitoring is true.
 	//
@@ -303,7 +306,7 @@ type AddonsSpec struct {
 	// Monitoring API. VM metrics will be collected by Google Compute Engine
 	// regardless of this setting.
 	// monitoring.googleapis.com, monitoring.googleapis.com/kubernetes
-	Monitoring *string `yaml:"monitoring,omitempty" default:"monitoring.googleapis.com/kubernetes"`
+	Monitoring *string `yaml:"monitoring,omitempty" default:"monitoring.googleapis.com/kubernetes"` // TODO validate
 	// NetworkPolicy enables network policy for the cluster.
 	// Enable network policy enforcement for this cluster.
 	// Default value for NetworkPolicy is true.
@@ -345,13 +348,6 @@ type AddonsSpec struct {
 	//
 	// https://cloud.google.com/kubernetes-engine/docs/how-to/pod-security-policies.
 	PodSecurityPolicy *bool `yaml:"podSecurityPolicy,omitempty" default:"false"`
-
-	/*
-		TODO - I am getting
-		Legacy Stackdriver Logging Enabled
-		Legacy Stackdriver Monitoring Enabled
-		- both should be disabled by default
-	*/
 }
 
 // TypeMeta is metadata that all resources must have, which includes all objects

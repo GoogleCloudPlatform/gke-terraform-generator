@@ -20,7 +20,10 @@ gazelle(name = "gazelle")
 
 go_library(
     name = "go_default_library",
-    srcs = ["main.go"],
+    srcs = [
+        "doc.go",
+        "main.go",
+    ],
     importpath = "partner-code.googlesource.com/gke-terraform-generator",
     visibility = ["//visibility:private"],
     deps = ["//cmd:go_default_library"],

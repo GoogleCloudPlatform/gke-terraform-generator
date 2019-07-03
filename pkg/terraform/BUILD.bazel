@@ -46,8 +46,6 @@ go_embed_data(
     var = "GKEOutputsTF",
 )
 
-
-
 go_embed_data(
     name = "gke_variables",
     src = ":variables.tf.tmpl",

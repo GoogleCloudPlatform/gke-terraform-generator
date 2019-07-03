@@ -37,5 +37,8 @@ go_test(
         #"@terraform//:binary", # Not working
     ],
     embed = [":go_default_library"],
-    deps = ["//pkg/api:go_default_library"],
+    deps = [
+        "//pkg/api:go_default_library",
+        "//pkg/terraform:go_default_library",
+    ],
 )

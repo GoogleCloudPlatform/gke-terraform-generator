@@ -34,22 +34,6 @@ go_library(
 )
 
 go_test(
-    name = "go_validate_test",
-    size = "small",
-    srcs = ["validate_test.go"],
-    data = ["//examples:yaml"],
-    embed = [":go_default_library"],
-)
-
-go_test(
-    name = "go_defaults_values_test",
-    size = "small",
-    srcs = ["default_values_test.go"],
-    data = ["//examples:yaml"],
-    embed = [":go_default_library"],
-)
-
-go_test(
     name = "go_api_test",
     size = "small",
     srcs = ["api_test.go"],
@@ -67,4 +51,5 @@ go_test(
     ],
     data = ["//examples:yaml"],
     embed = [":go_default_library"],
+    deps = ["@in_gopkg_go_playground_validator_v9//:go_default_library"],
 )
