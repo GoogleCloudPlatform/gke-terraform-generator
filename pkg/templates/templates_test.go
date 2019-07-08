@@ -26,7 +26,6 @@ import (
 
 // TODO implement https://github.com/hashicorp/hcl/blob/master/decoder_test.go
 
-
 func TestTemplates(t *testing.T) {
 
 	configFile := "../../examples/public-example.yaml"

@@ -16,21 +16,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "go_default_library",
-    srcs = [
-        "cmd.go",
-        "doc.go",
-        "gen.go",
-        "version.go",
-    ],
-    importpath = "partner-code.googlesource.com/gke-terraform-generator/cmd",
+    srcs = ["version.go"],
+    importpath = "partner-code.googlesource.com/gke-terraform-generator/pkg/version",
     visibility = ["//visibility:public"],
-    deps = [
-        "//pkg/api:go_default_library",
-        "//pkg/files:go_default_library",
-        "//pkg/templates:go_default_library",
-        "//pkg/version:go_default_library",
-        "@com_github_spf13_cobra//:go_default_library",
-        "@com_github_spf13_pflag//:go_default_library",
-        "@io_k8s_klog//:go_default_library",
-    ],
 )

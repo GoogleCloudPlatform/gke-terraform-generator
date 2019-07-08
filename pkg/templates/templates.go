@@ -15,12 +15,13 @@ limitations under the License.
 */
 
 package templates
+
 // TODO package godoc
 // TODO godocs in general
 
 import (
 	"bufio"
-	"errors"
+	"fmt"
 	"k8s.io/klog"
 	"os"
 	"path"
@@ -40,27 +41,26 @@ type GKETemplates struct {
 	Templates []*TerraformTemplate
 }
 
-var templates =
-		&GKETemplates {
-		[]*TerraformTemplate{
-			{
-				"main.tf",
-				terraform.GKEMainTF,
-			},
-			{
-				"network.tf",
-				terraform.GKENetworkTF,
-			},
-			{
-				"outputs.tf",
-				terraform.GKEOutputsTF,
-			},
-			{
-				"variables.tf",
-				terraform.GKEVariablesTF,
-			},
+var templates = &GKETemplates{
+	[]*TerraformTemplate{
+		{
+			"main.tf",
+			terraform.GKEMainTF,
 		},
-	}
+		{
+			"network.tf",
+			terraform.GKENetworkTF,
+		},
+		{
+			"outputs.tf",
+			terraform.GKEOutputsTF,
+		},
+		{
+			"variables.tf",
+			terraform.GKEVariablesTF,
+		},
+	},
+}
 
 func NewGKETemplates() *GKETemplates {
 	return templates
@@ -73,15 +73,14 @@ func (gkeTemplates *GKETemplates) CopyTo(allowOverwrite bool, dst string, cluste
 }
 
 func (gkeTemplates *GKETemplates) processTemplates(allowOverwrite bool, dst string, cluster *api.GkeTF) error {
-	// TODO check if file exists prompt to override
 	// TODO refactor to access a bufio.NewWriter interface
 	// TODO need to be able to override file writing in unit tests
 
 	for _, t := range gkeTemplates.Templates {
 		fileName := path.Join(dst, t.FileName)
-		if !allowOverwrite{
+		if !allowOverwrite {
 			if f, err := os.Open(fileName); f != nil && err == nil {
-				return errors.New("File already exists and overwrites not allowed.")
+				return fmt.Errorf("file already exists and overwrites not allowed file: %s", fileName)
 			}
 		}
 		f, err := os.Create(fileName)
@@ -92,7 +91,7 @@ func (gkeTemplates *GKETemplates) processTemplates(allowOverwrite bool, dst stri
 		w := bufio.NewWriter(f)
 
 		tmpl, err := template.New(t.FileName).Funcs(
-			template.FuncMap{"StringsJoin": strings.Join }).Parse(t.GoTemplate)
+			template.FuncMap{"StringsJoin": strings.Join}).Parse(t.GoTemplate)
 		if err != nil {
 			return err
 		}

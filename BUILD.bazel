@@ -33,4 +33,7 @@ go_binary(
     name = "gke-tf",
     embed = [":go_default_library"],
     visibility = ["//visibility:public"],
+    x_defs = {
+	     "partner-code.googlesource.com/gke-terraform-generator/pkg/version.Version": "{GKE_TF_VERSION}",
+    },
 )

@@ -34,14 +34,6 @@ go_library(
 )
 
 go_test(
-    name = "go_api_test",
-    size = "small",
-    srcs = ["api_test.go"],
-    data = ["//examples:yaml"],
-    embed = [":go_default_library"],
-)
-
-go_test(
     name = "go_default_test",
     size = "small",
     srcs = [

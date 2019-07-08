@@ -8,6 +8,7 @@ require (
 	github.com/leodido/go-urn v1.1.0 // indirect
 	github.com/spf13/cobra v0.0.4
 	github.com/spf13/pflag v1.0.3
+	golang.org/x/tools v0.0.0-20190708203411-c8855242db9c
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
 	gopkg.in/go-playground/validator.v9 v9.29.0
 	gopkg.in/yaml.v2 v2.2.2

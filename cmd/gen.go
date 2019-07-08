@@ -36,90 +36,82 @@ var (
 	outDir string
 	// configFile is the name of the yaml configuration file
 	configFile string
-	// projectId is the gcp project id.
-	projectId string
+	// projectID is the gcp project id.
+	projectID string
 	// overwriteFile boolean determines whether TF files can be written over
 	overwriteFile bool
 	// gkeTF is the api cluster representation.
 	gkeTF *api.GkeTF
 	// genCommend command to generate GKE Terraform file
-	genCommand = &cobra.Command{
-		Use:   "gen",
-		Short: "Generates GKE TF File with given locals",
-		Run: NewGen,
-	}
 )
 
-func init() {
+// NewGenCommand is the entry point for cobra for the gen command.
+func NewGenCommand() *cobra.Command {
 	defaultDir, err := os.Getwd()
 	if err != nil {
 		klog.Errorf("Error getting directory: %v", err)
 		exitWithError(err)
 	}
-	gkeTF = &api.GkeTF{
-		Spec: api.ClusterSpec{
-			Zones:     new([]string),
-			NodePools: &[]*api.GkeNodePool{},
-			Tags:      new([]string),
-		},
-	}
 
-	RootCMD.AddCommand(genCommand)
+	genCommand := &cobra.Command{
+		Use:   "gen",
+		Short: "Generates GKE TF File with given locals",
+	}
 	// Add root flags so we can get logging flags
 	genCommand.Flags().AddFlagSet(RootCMD.Flags())
 	// TODO add long help descriptions for these
 	genCommand.Flags().StringVarP(&outDir, "directory", "d", defaultDir, "output directory")
 	genCommand.Flags().StringVarP(&configFile, "file", "f", "", "config yaml file")
-	genCommand.Flags().StringVarP(&projectId, "project-id", "p", "", "gcp project id")
+	genCommand.Flags().StringVarP(&projectID, "project-id", "p", "", "gcp project id")
 	genCommand.Flags().BoolVarP(&overwriteFile, "overwrite-file", "o", false, "overwrite file flag")
 	if err := cobra.MarkFlagRequired(genCommand.Flags(), "file"); err != nil {
 		exitWithError(err)
 	}
-}
 
-// NewGen is the entry point for cobra for the gen command.
-func NewGen(cmd *cobra.Command, args []string) {
-	klog.Info(header)
-	err := checkCliArgs()
-	if err != nil {
-		klog.Errorf("Error checking cli arguments: %v", err)
-		os.Exit(1)
+	genCommand.Run = func(cmd *cobra.Command, args []string) {
+		klog.Info(header)
+		err := checkCliArgs()
+		if err != nil {
+			klog.Errorf("Error checking cli arguments: %v", err)
+			os.Exit(1)
+		}
+
+		gkeTF, err = api.UnmarshalGkeTF(configFile)
+		if err != nil {
+			klog.Errorf("Error unmarshaling the configuration file: %v", err)
+			exitWithError(err)
+		}
+
+		klog.Infof("Creating terraform for your GKE cluster %s.", gkeTF.Name)
+
+		// set project id.  This will also override the value if it exists in the
+		// YAML file.
+		if projectID != "" {
+			gkeTF.Spec.ProjectId = projectID
+		}
+
+		err = api.SetApiDefaultValues(gkeTF, configFile)
+		if err != nil {
+			klog.Errorf("Error setting api defaults: %v", err)
+			exitWithError(err)
+		}
+
+		err = api.ValidateYamlInput(gkeTF)
+		if err != nil {
+			klog.Errorf("Error validating api values: %v", err)
+			exitWithError(err)
+		}
+
+		// this creates a NewGKETemplates struct and runs CopyTo.
+		// This func does all the grunt work of processing each go template and writing the
+		// terraform results to a file.
+		err = templates.NewGKETemplates().CopyTo(overwriteFile, outDir, gkeTF)
+		if err != nil {
+			klog.Errorf("Error creating terraform: %v", err)
+			exitWithError(err)
+		}
 	}
-
-	gkeTF, err = api.UnmarshalGkeTF(configFile)
-	if err != nil {
-		klog.Errorf("Error unmarshaling the configuration file: %v", err)
-		os.Exit(1)
-	}
-
-	klog.Infof("Creating terraform for your GKE cluster %s.", gkeTF.Name)
-
-	// set project id.  This will also override the value if it exists in the
-	// YAML file.
-	if projectId != "" {
-		gkeTF.Spec.ProjectId = projectId
-	}
-
-	err = api.SetApiDefaultValues(gkeTF, configFile)
-	if err != nil {
-		klog.Errorf("Error setting api defaults: %v", err)
-		os.Exit(1)
-	}
-
-	err = api.ValidateYamlInput(gkeTF)
-	if err != nil {
-		klog.Errorf("Error validating api values: %v", err)
-		os.Exit(1)
-	}
-
-	// this creates a NewGKETemplates struct and runs CopyTo.
-	// This func does all the grunt work of processing each go template and writing the
-	// terraform results to a file.
-	err = templates.NewGKETemplates().CopyTo(overwriteFile, outDir, gkeTF)
-	if err != nil {
-		klog.Errorf("Error creating terraform: %v", err)
-		os.Exit(1)
-	}
+	return genCommand
 }
 
 // checkCliArgs in essence checks the cli arguments to ensure that the proper
@@ -131,12 +123,12 @@ func checkCliArgs() error {
 	}
 
 	if err := files.CreateDirIfNotExist(outDir); err != nil {
-		return errors.New(fmt.Sprintf("Error creating directory: %s ... %s", outDir, err.Error()))
+		return fmt.Errorf("Error creating directory: %s ... %s", outDir, err.Error())
 	}
 
 	test, err := files.IsWritable(outDir)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error openning directory: %s ... %s", outDir, err.Error()))
+		return fmt.Errorf("Error openning directory: %s ... %s", outDir, err.Error())
 	}
 
 	if !test {
@@ -150,7 +142,7 @@ func checkCliArgs() error {
 	test, err = files.IsFile(configFile)
 
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error openning config file: %s ... %s", configFile, err.Error()))
+		return fmt.Errorf("Error openning config file: %s ... %s", configFile, err.Error())
 	}
 
 	if !test {

@@ -17,6 +17,7 @@ limitations under the License.
 package analyzer
 
 import (
+	"fmt"
 	"strconv"
 
 	"golang.org/x/tools/go/analysis"
@@ -30,10 +31,16 @@ var Analyzer = &analysis.Analyzer{
 
 func run(pass *analysis.Pass) (interface{}, error) {
 	for _, f := range pass.Files {
+		// mousetrap is imported by windows and uses unsafe
+		if f.Name.Name == "mousetrap" {
+			continue
+		}
+		fmt.Printf("name: %s", f.Name.Name)
 		for _, imp := range f.Imports {
 			path, err := strconv.Unquote(imp.Path.Value)
 			if err == nil && path == "unsafe" {
-				pass.Reportf(imp.Pos(), "package unsafe must not be imported")
+				msg := fmt.Sprintf("package unsafe must not be imported pkg: %s", f.Name.Name)
+				pass.Reportf(imp.Pos(), msg)
 			}
 		}
 	}

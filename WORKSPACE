@@ -33,8 +33,9 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(
     name = "io_bazel_rules_go",
-    urls = ["https://github.com/bazelbuild/rules_go/releases/download/0.18.6/rules_go-0.18.6.tar.gz"],
-    sha256 = "f04d2373bcaf8aa09bccb08a98a57e721306c8f6043a2a0ee610fd6853dcde3d",
+    urls = ["https://github.com/bazelbuild/rules_go/archive/bf51fd0698feb9b495bc7ae17f77782138746455.tar.gz"],
+    sha256 = "6eb05605adb5687bd45d960a153b3ab4052c239f1fd357173dac58241a5df17b",
+    strip_prefix = "rules_go-bf51fd0698feb9b495bc7ae17f77782138746455",
 )
 
 http_archive(
@@ -46,8 +47,11 @@ http_archive(
 load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies", "go_register_toolchains")
 
 go_rules_dependencies()
-go_register_toolchains(nogo="@//pkg/analyzer:my_nogo")
+
+go_register_toolchains(nogo = "@//pkg/analyzer:my_nogo")
+
 load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies", "go_repository")
+
 gazelle_dependencies()
 
 go_repository(
@@ -262,13 +266,13 @@ go_repository(
 
 go_repository(
     name = "org_golang_x_crypto",
-    commit = "505ab145d0a9",
+    commit = "c2843e01d9a2",
     importpath = "golang.org/x/crypto",
 )
 
 go_repository(
     name = "org_golang_x_sys",
-    commit = "a5c9d58dba9a",
+    commit = "d0b11bdaac8a",
     importpath = "golang.org/x/sys",
 )
 
@@ -276,4 +280,22 @@ go_repository(
     name = "org_golang_x_text",
     importpath = "golang.org/x/text",
     tag = "v0.3.0",
+)
+
+go_repository(
+    name = "org_golang_x_net",
+    commit = "3b0461eec859",
+    importpath = "golang.org/x/net",
+)
+
+go_repository(
+    name = "org_golang_x_sync",
+    commit = "112230192c58",
+    importpath = "golang.org/x/sync",
+)
+
+go_repository(
+    name = "org_golang_x_tools",
+    commit = "c8855242db9c",
+    importpath = "golang.org/x/tools",
 )

@@ -22,7 +22,6 @@ import (
 )
 
 // TODO add nvida card values
-// non_masquerade_cidrs	and ip masq
 
 // TODO add bastion
 // TODO add nat gateway
@@ -85,7 +84,6 @@ type ClusterSpec struct {
 	// RFC3339 format
 	MaintenanceStartTime *string `yaml:"maintenanceStartTime"`
 
-	// TODO do we want a bool or a string?
 	IssueClientCertificate *string `yaml:"IssueClientCertificate" default:"false"`
 
 	// MasterAuthorizedNetworksConfig is a slice of the desired configuration options for master authorized networks.
@@ -155,14 +153,14 @@ type MasterAuthorizedNetworksConfigSpec struct {
 
 type DatabaseEncryptionSpec struct {
 	// State can be two different values "ENCRYPTED", "DECRYPTED".
-	State *string  `yaml:"state" validate:"required,eq=ENCRYPTED|eq=DECRYPTED"`
+	State *string `yaml:"state" validate:"required,eq=ENCRYPTED|eq=DECRYPTED"`
 	// Keyname is the name of the KMS key.
 	KeyName *string `yaml:"keyName" validate:"required"`
 }
 
 type StubDomainsSpec struct {
-	TypeMeta   `yaml:",inline"`
-	ObjectMeta `yaml:"metadata,omitempty"`
+	TypeMeta             `yaml:",inline"`
+	ObjectMeta           `yaml:"metadata,omitempty"`
 	DNSServerIPAddresses []string `yaml:"dnsServerIPAddresses" validate:"required,dive,ipv4"`
 }
 
@@ -215,15 +213,15 @@ type NodePoolSpec struct {
 
 	// Tags slice containing node network tags for this specific nodepool.
 	// See https://cloud.google.com/vpc/docs/add-remove-network-tags.
-	Tags *[]string `yaml:"tags"`// validate:"omitempty,dive"` // this will cause a panic with validator
+	Tags *[]string `yaml:"tags"` // validate:"omitempty,dive"` // this will cause a panic with validator
 	// OauthScopes is a slice of Oauth Scope URLs that are applied to
 	// the GCP instances in a nodepool.
 	// See https://developers.google.com/identity/protocols/googlescopes
-	OauthScopes *[]string `yaml:"oauthScopes"`// validate:"omitempty,dive,url"`
+	OauthScopes *[]string `yaml:"oauthScopes"` // validate:"omitempty,dive,url"`
 	// Taints are a slice of TaintSpec structs.
 	// See https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/ and
 	// https://cloud.google.com/kubernetes-engine/docs/how-to/node-taints.
-	Taints *[]TaintSpec `yaml:"taints"`// validate:"omitempty,dive"`
+	Taints *[]TaintSpec `yaml:"taints"` // validate:"omitempty,dive"`
 	// Labels is a map of GCP instance labels.
 	// See https://cloud.google.com/compute/docs/labeling-resources.
 	Labels   *map[string]string `yaml:"labels"`

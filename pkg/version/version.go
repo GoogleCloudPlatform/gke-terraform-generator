@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package main
+package version
 
-// TODO godoc
+// Version is replaced during the build process, and contains the current git sha.
+var Version = "build-changes-this"

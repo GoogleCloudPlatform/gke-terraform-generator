@@ -14,20 +14,28 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package files
+package cmd
 
 import (
-	"os"
+	"fmt"
+	"io"
+
+	"github.com/spf13/cobra"
+	"partner-code.googlesource.com/gke-terraform-generator/pkg/version"
 )
 
-// CreateDirIfNotExist is a func that creates a director path if it does not exist.
-func CreateDirIfNotExist(dir string) error {
-	if _, err := os.Stat(dir); os.IsNotExist(err) {
-		err = os.MkdirAll(dir, 0755)
+// NewVersionCommand is the entry point for cobra for the version command.
+func NewVersionCommand(out io.Writer) (cmd *cobra.Command) {
+	versionCMD := &cobra.Command{
+		Use:   "version",
+		Short: "Print gke-tf version",
+	}
+	versionCMD.Run = func(cmd *cobra.Command, args []string) {
+		s := fmt.Sprintf("gke-tf version: %s", version.Version)
+		_, err := fmt.Fprintf(out, "%s\n", s)
 		if err != nil {
-			return err
+			exitWithError(err)
 		}
 	}
-
-	return nil
+	return versionCMD
 }

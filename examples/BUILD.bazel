@@ -12,9 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Consuming the above md5_sum rule directly into the data deps of a sh_test results in the
-# files just not appearing, and the dependancy not triggering.
-# If we wrap it in a filegroup first however it just works.
+# filegroup used for unit tests
+
 filegroup(
     name = "yaml",
     testonly = True,
