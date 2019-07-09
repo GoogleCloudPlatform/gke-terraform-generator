@@ -18,10 +18,11 @@ package templates
 
 import (
 	"io/ioutil"
-	"partner-code.googlesource.com/gke-terraform-generator/pkg/api"
-	"partner-code.googlesource.com/gke-terraform-generator/pkg/terraform"
 	"strings"
 	"testing"
+
+	"partner-code.googlesource.com/gke-terraform-generator/pkg/api"
+	"partner-code.googlesource.com/gke-terraform-generator/pkg/terraform/cft"
 )
 
 // TODO implement https://github.com/hashicorp/hcl/blob/master/decoder_test.go
@@ -51,7 +52,11 @@ func TestTemplates(t *testing.T) {
 		t.Fatalf("error merging defaults: %v", gkeTF)
 	}
 
-	testTemplates := NewGKETemplates()
+	testTemplates, err := NewGKETemplates(CFT)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	err = testTemplates.CopyTo(false, ".", gkeTF)
 
 	if err != nil {
@@ -69,7 +74,7 @@ func TestTemplates(t *testing.T) {
 	if !strings.Contains(s, public) {
 
 		t.Log(s)
-		t.Log(terraform.GKEMainTF)
+		t.Log(cft.GKEMainTF)
 		t.Fatalf("template does not contain the correct source provider")
 	}
 }
@@ -99,7 +104,11 @@ func TestPrivateTemplate(t *testing.T) {
 		t.Fatalf("error merging defaults: %v", gkeTF)
 	}
 
-	testTemplates := NewGKETemplates()
+	testTemplates, err := NewGKETemplates(CFT)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	err = testTemplates.CopyTo(true, ".", gkeTF)
 
 	if err != nil {
@@ -116,7 +125,7 @@ func TestPrivateTemplate(t *testing.T) {
 	private := "source = \"terraform-google-modules/kubernetes-engine/google//modules/private-cluster\""
 	if !strings.Contains(s, private) {
 		t.Log(s)
-		t.Log(terraform.GKEMainTF)
+		t.Log(cft.GKEMainTF)
 		t.Fatalf("template does not contain the private source provider")
 	}
 }

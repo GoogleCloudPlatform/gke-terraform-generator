@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Copyright 2019 Google LLC
+# Copyright 2018 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -60,8 +60,6 @@ gcloud beta container clusters create anthos-cluster \
 # "-  Installs Anthos Config Manager                       -"
 # "-                                                       -"
 # "---------------------------------------------------------"
-
-ROOT=$(dirname "${BASH_SOURCE[0]}")
 
 REPO="anthos-demo"
 PROJECT=$(gcloud config list --format 'value(core.project)' 2>/dev/null)

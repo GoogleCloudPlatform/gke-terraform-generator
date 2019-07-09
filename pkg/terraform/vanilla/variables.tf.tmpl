@@ -14,9 +14,26 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// Configles the Google Cloud Provider with default settings
-provider "google" {
-  project = var.project
-  version = "~> 2.10"
+variable "cluster_name" {
+  description = ""
+  default = "{{.ObjectMeta.Name}}"
 }
 
+variable "project_id" {
+  description = ""
+  default = "{{.Spec.ProjectId}}"
+}
+
+variable "region" {
+  description = ""
+  default = "{{.Spec.Region}}"
+}
+
+{{- if .Spec.Zones }}
+variable "zones" {
+  description = ""
+  // TODO fix bug when we have a single zone
+  // TODO fix bug when we do not have zones
+  default = ["{{StringsJoin .Spec.Zones "\",\""}}"]
+}
+{{- end}}

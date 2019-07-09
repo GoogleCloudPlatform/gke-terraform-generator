@@ -23,7 +23,8 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//pkg/api:go_default_library",
-        "//pkg/terraform:go_default_library",  #keep
+        "//pkg/terraform/cft:go_default_library",  #keep
+        "//pkg/terraform/vanilla:go_default_library",  #keep
         "@io_k8s_klog//:go_default_library",
     ],
 )
@@ -39,6 +40,6 @@ go_test(
     embed = [":go_default_library"],
     deps = [
         "//pkg/api:go_default_library",
-        "//pkg/terraform:go_default_library",
+        "//pkg/terraform/cft:go_default_library",
     ],
 )

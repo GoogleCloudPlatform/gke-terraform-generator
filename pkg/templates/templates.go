@@ -22,15 +22,38 @@ package templates
 import (
 	"bufio"
 	"fmt"
-	"k8s.io/klog"
 	"os"
 	"path"
 	"strings"
 	"text/template"
 
+	"k8s.io/klog"
+
 	"partner-code.googlesource.com/gke-terraform-generator/pkg/api"
-	"partner-code.googlesource.com/gke-terraform-generator/pkg/terraform"
+	"partner-code.googlesource.com/gke-terraform-generator/pkg/terraform/cft"
+	"partner-code.googlesource.com/gke-terraform-generator/pkg/terraform/vanilla"
 )
+
+type TFType int
+
+const (
+	CFT     TFType = 0
+	VANILLA TFType = 1
+)
+
+func (day TFType) String() string {
+	names := [...]string{
+		"CFT",
+		"VANILLA",
+	}
+	if day < CFT || day > VANILLA {
+		return "Unknown"
+	}
+	// return the name of a Weekday
+	// constant from the names array
+	// above.
+	return names[day]
+}
 
 type TerraformTemplate struct {
 	FileName   string
@@ -45,25 +68,70 @@ var templates = &GKETemplates{
 	[]*TerraformTemplate{
 		{
 			"main.tf",
-			terraform.GKEMainTF,
+			cft.GKEMainTF,
 		},
 		{
 			"network.tf",
-			terraform.GKENetworkTF,
+			cft.GKENetworkTF,
 		},
 		{
 			"outputs.tf",
-			terraform.GKEOutputsTF,
+			cft.GKEOutputsTF,
 		},
 		{
 			"variables.tf",
-			terraform.GKEVariablesTF,
+			cft.GKEVariablesTF,
 		},
 	},
 }
 
-func NewGKETemplates() *GKETemplates {
-	return templates
+func NewGKETemplates(tfType TFType) (*GKETemplates, error) {
+	switch tfType {
+	case CFT:
+		return &GKETemplates{
+			[]*TerraformTemplate{
+				{
+					"main.tf",
+					cft.GKEMainTF,
+				},
+				{
+					"network.tf",
+					cft.GKENetworkTF,
+				},
+				{
+					"outputs.tf",
+					cft.GKEOutputsTF,
+				},
+				{
+					"variables.tf",
+					cft.GKEVariablesTF,
+				},
+			},
+		}, nil
+	case VANILLA:
+		return &GKETemplates{
+			[]*TerraformTemplate{
+				{
+					"main.tf",
+					vanilla.GKEMainTF,
+				},
+				{
+					"network.tf",
+					vanilla.GKENetworkTF,
+				},
+				{
+					"outputs.tf",
+					vanilla.GKEOutputsTF,
+				},
+				{
+					"variables.tf",
+					vanilla.GKEVariablesTF,
+				},
+			},
+		}, nil
+	default:
+		return nil, fmt.Errorf("unable to find terraform type: %s", tfType)
+	}
 }
 
 // CopyTo is used to copy all of the templates in the

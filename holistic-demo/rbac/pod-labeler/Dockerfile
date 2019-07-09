@@ -14,7 +14,7 @@
 
 FROM python:2.7-stretch
 
-RUN apt-get update && apt-get upgrade -y && apt-get install --no-install-recommends \
+RUN apt-get update && apt-get install --no-install-recommends \
   vim=2:8.0.0197-4+deb9u1 -y  \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*

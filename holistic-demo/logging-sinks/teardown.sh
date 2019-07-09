@@ -26,10 +26,6 @@
 set -o nounset
 set -o pipefail
 
-ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
-# shellcheck source=scripts/common.sh
-source "$ROOT"/scripts/common.sh
-
 # We have to delete the dataset before the Terraform
 # Otherwise we will run into the following error
 # "google_bigquery_dataset.gke-bigquery-dataset: googleapi:

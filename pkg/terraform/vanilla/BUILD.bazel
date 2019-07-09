@@ -26,14 +26,14 @@ go_library(
         ":gke_network",
         ":gke_main",
         ],
-    importpath = "partner-code.googlesource.com/gke-terraform-generator/pkg/terraform",
+    importpath = "partner-code.googlesource.com/gke-terraform-generator/pkg/terraform/vanilla",
     visibility = ["//visibility:public"],
 )
 
 go_embed_data(
     name = "gke_network",
     src = ":network.tf.tmpl",
-    package = "terraform",
+    package = "vanilla",
     string = True,
     var = "GKENetworkTF",
 )
@@ -41,7 +41,7 @@ go_embed_data(
 go_embed_data(
     name = "gke_outputs",
     src = ":outputs.tf.tmpl",
-    package = "terraform",
+    package = "vanilla",
     string = True,
     var = "GKEOutputsTF",
 )
@@ -49,7 +49,7 @@ go_embed_data(
 go_embed_data(
     name = "gke_variables",
     src = ":variables.tf.tmpl",
-    package = "terraform",
+    package = "vanilla",
     string = True,
     var = "GKEVariablesTF",
 )
@@ -57,7 +57,7 @@ go_embed_data(
 go_embed_data(
     name = "gke_main",
     src = ":main.tf.tmpl",
-    package = "terraform",
+    package = "vanilla",
     string = True,
     var = "GKEMainTF",
 )

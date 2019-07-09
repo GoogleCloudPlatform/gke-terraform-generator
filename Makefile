@@ -58,6 +58,7 @@ test:
 .PHONY: clean
 clean:
 	@bazel clean
+	@rm -rf dist
 
 .PHONY: gen
 gen:

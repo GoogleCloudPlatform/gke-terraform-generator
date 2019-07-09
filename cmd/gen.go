@@ -19,6 +19,7 @@ package cmd
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -42,7 +43,10 @@ var (
 	overwriteFile bool
 	// gkeTF is the api cluster representation.
 	gkeTF *api.GkeTF
-	// genCommend command to generate GKE Terraform file
+	// tfType is the type of terraform
+	tfTypeStr string
+	// tfType is the type of terraform
+	tfType templates.TFType
 )
 
 // NewGenCommand is the entry point for cobra for the gen command.
@@ -63,7 +67,9 @@ func NewGenCommand() *cobra.Command {
 	genCommand.Flags().StringVarP(&outDir, "directory", "d", defaultDir, "output directory")
 	genCommand.Flags().StringVarP(&configFile, "file", "f", "", "config yaml file")
 	genCommand.Flags().StringVarP(&projectID, "project-id", "p", "", "gcp project id")
+	genCommand.Flags().StringVarP(&tfTypeStr, "tf-type", "t", "Vanilla", "terraform types are CFT or Vanilla")
 	genCommand.Flags().BoolVarP(&overwriteFile, "overwrite-file", "o", false, "overwrite file flag")
+
 	if err := cobra.MarkFlagRequired(genCommand.Flags(), "file"); err != nil {
 		exitWithError(err)
 	}
@@ -102,14 +108,21 @@ func NewGenCommand() *cobra.Command {
 			exitWithError(err)
 		}
 
-		// this creates a NewGKETemplates struct and runs CopyTo.
+		template, err := templates.NewGKETemplates(tfType)
+		if err != nil {
+			klog.Errorf("Error creating setting up terraform templates: %v", err)
+			exitWithError(err)
+		}
+
+		// this runs CopyTo on the template created.
 		// This func does all the grunt work of processing each go template and writing the
 		// terraform results to a file.
-		err = templates.NewGKETemplates().CopyTo(overwriteFile, outDir, gkeTF)
+		err = template.CopyTo(overwriteFile, outDir, gkeTF)
 		if err != nil {
 			klog.Errorf("Error creating terraform: %v", err)
 			exitWithError(err)
 		}
+
 	}
 	return genCommand
 }
@@ -147,6 +160,15 @@ func checkCliArgs() error {
 
 	if !test {
 		return errors.New("Configuration file is not found: " + configFile)
+	}
+
+	switch strings.ToUpper(tfTypeStr) {
+	case "CFT":
+		tfType = templates.CFT
+	case "VANILLA":
+		tfType = templates.VANILLA
+	default:
+		return errors.New("unable to determine terraform type, please set the -t flag with CFT or Vanilla")
 	}
 
 	return nil

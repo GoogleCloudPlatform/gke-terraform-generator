@@ -43,11 +43,10 @@ resource "google_bigquery_dataset" "gke-bigquery-dataset" {
   location                    = "US"
   default_table_expiration_ms = 3600000
 
-  labels {
+  labels = {
     env = "default"
   }
 }
-
 
 ///////////////////////////////////////////////////////////////////////////////////////
 // Configure the stackdriver sinks and necessary roles.
@@ -79,7 +78,7 @@ resource "google_project_iam_binding" "log-writer-storage" {
   role = "roles/storage.objectCreator"
 
   members = [
-    "${google_logging_project_sink.storage-sink.writer_identity}",
+    google_logging_project_sink.storage-sink.writer_identity,
   ]
 }
 
@@ -88,6 +87,7 @@ resource "google_project_iam_binding" "log-writer-bigquery" {
   role = "roles/bigquery.dataEditor"
 
   members = [
-    "${google_logging_project_sink.bigquery-sink.writer_identity}",
+    google_logging_project_sink.bigquery-sink.writer_identity,
   ]
 }
+
