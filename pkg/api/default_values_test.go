@@ -39,9 +39,9 @@ func TestDefaults(t *testing.T) {
 		t.Fatal("gkeTF.Spec.Private is not set to true and it should be")
 	}
 
-	t.Logf("*gkeTF.Spec.Addons.Autoscaling: %v", *gkeTF.Spec.Addons.Autoscaling)
-	if *gkeTF.Spec.Addons.Autoscaling != false {
-		t.Fatal("*gkeTF.Spec.Addons.Autoscaling is not false")
+	t.Logf("*gkeTF.Spec.Addons.ClusterAutoscaling: %v", *gkeTF.Spec.Addons.ClusterAutoscaling)
+	if *gkeTF.Spec.Addons.ClusterAutoscaling != false {
+		t.Fatal("*gkeTF.Spec.Addons.ClusterAutoscaling is not false")
 	}
 
 	if gkeTF.Spec.OauthScopes == nil {

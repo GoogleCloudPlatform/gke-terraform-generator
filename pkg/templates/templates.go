@@ -64,27 +64,6 @@ type GKETemplates struct {
 	Templates []*TerraformTemplate
 }
 
-var templates = &GKETemplates{
-	[]*TerraformTemplate{
-		{
-			"main.tf",
-			cft.GKEMainTF,
-		},
-		{
-			"network.tf",
-			cft.GKENetworkTF,
-		},
-		{
-			"outputs.tf",
-			cft.GKEOutputsTF,
-		},
-		{
-			"variables.tf",
-			cft.GKEVariablesTF,
-		},
-	},
-}
-
 func NewGKETemplates(tfType TFType) (*GKETemplates, error) {
 	switch tfType {
 	case CFT:
@@ -114,6 +93,10 @@ func NewGKETemplates(tfType TFType) (*GKETemplates, error) {
 				{
 					"main.tf",
 					vanilla.GKEMainTF,
+				},
+				{
+					"bastion.tf",
+					vanilla.GKEBastionTF,
 				},
 				{
 					"network.tf",

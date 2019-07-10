@@ -67,7 +67,7 @@ type ClusterSpec struct {
 	Tags *[]string `yaml:"tags"`
 
 	// Labels is a map of labels that are applied to all node.  Labels are in the form of key and value strings.
-	Labels *map[string]string `yaml:"labels" validate:"omitempty,dive"`
+	Labels *map[string]string `yaml:"labels" validate:"omitempty"`
 	// NodePools is a slice of NodePoolSpec struts that models a nodepool in GKE.
 	NodePools *[]*GkeNodePool `yaml:"nodePools" validate:"required,dive"`
 	// Metadata is a map of GCP compute instance metadata that will be applied to all compute instances.
@@ -102,6 +102,9 @@ type ClusterSpec struct {
 	// ServiceAccount is the name of the service account to use for the cluster, or can hold the value "create".
 	// This value defaults to the value "create", which creates a new service account for the cluster.
 	ServiceAccount *string `yaml:"serviceAccount" default:"create"`
+
+	// Workload Identity //TODO
+	WorkloadIdentityConfig *map[string]string `yaml:"workloadIdentityConfig" validate:"omitempty"`
 
 	// TODO check if we have this
 	DeployUsingPrivateEndpoint *bool `yaml:"deployUsingPrivateEndpoint"`
@@ -169,10 +172,14 @@ type NodePoolSpec struct {
 
 	// MinCount of the nodepool.
 	// This value defaults to 1 and must be less than MaxCount
-	MinCount int16 `yaml:"minCount" default:"1" validate:"ltefield=MaxCount"`
+	MinCount int16 `yaml:"minCount" default:"1" validate:"gte=0,ltefield=MaxCount"`
 	// MaxCount of the nodepool.
 	// This value defaults to 1.
-	MaxCount int16 `yaml:"maxCount" default:"1"`
+	MaxCount int16 `yaml:"maxCount" default:"1" validate:"gtefield=MinCount,lte=2000"`
+	// MaxPodsPerNode of the nodepool. Controls the subnet slicing per node.  See
+        // https://cloud.google.com/kubernetes-engine/docs/how-to/flexible-pod-cidr
+	// This value defaults to 110.
+	MaxPodsPerNode int16 `yaml:"maxPodsPerNode" default:"110" validate:"gte=8,lte=110"`
 	// MachineType of the nodepool, which defaults to a n1-standard-1. See
 	// https://cloud.google.com/compute/docs/machine-types for more information about
 	// GCP machine types.
@@ -217,7 +224,7 @@ type NodePoolSpec struct {
 	// OauthScopes is a slice of Oauth Scope URLs that are applied to
 	// the GCP instances in a nodepool.
 	// See https://developers.google.com/identity/protocols/googlescopes
-	OauthScopes *[]string `yaml:"oauthScopes"` // validate:"omitempty,dive,url"`
+	OauthScopes *[]string `yaml:"oauthScopes" default:"[\"https://www.googleapis.com/auth/trace.append\",\"https://www.googleapis.com/auth/service.management.readonly\",\"https://www.googleapis.com/auth/monitoring\",\"https://www.googleapis.com/auth/devstorage.read_only\",\"https://www.googleapis.com/auth/servicecontrol\"]"`
 	// Taints are a slice of TaintSpec structs.
 	// See https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/ and
 	// https://cloud.google.com/kubernetes-engine/docs/how-to/node-taints.
@@ -226,9 +233,13 @@ type NodePoolSpec struct {
 	// See https://cloud.google.com/compute/docs/labeling-resources.
 	Labels   *map[string]string `yaml:"labels"`
 	Metadata *map[string]string `yaml:"metadata"`
+	// Workload Metadata is a map of configuration options for securing GKE metadata APIs
+        // node_metadata = "" or "EXPOSED", "SECURE" (Metadata Proxy), "GKE_METADATA_SERVER" (Workload Identity)
+	WorkloadMetadataConfig *map[string]string `yaml:"workloadMetadataConfig" validate:"omitempty"`
 
-	AcceleratorType *string `yaml:"acceleratorType,omitempty"`
-	ServiceAccount  *string `yaml:"serviceAccount"`
+	AcceleratorType  *string `yaml:"acceleratorType,omitempty"`
+	AcceleratorCount int16   `yaml:"acceleratorCount,omitempty"`
+	ServiceAccount   *string `yaml:"serviceAccount"`
 }
 
 // Todo I need to look at the API to figure out how to validate TaintSpec
@@ -281,20 +292,20 @@ type TaintSpec struct {
 // - https://cloud.google.com/binary-authorization/docs/
 type AddonsSpec struct {
 	// Istio installs managed istio on the cluster.
-	// Default value for Istio is false.
+	// Default value for Istio is false
 	// See: https://cloud.google.com/istio/docs/istio-on-gke/overview
-	Istio *bool `yaml:"istio,omitempty" default:"false"`
+	Istio string `yaml:"istio,omitempty" default:"true" validate:"eq=true|eq=false"`
 	// Cloudrun installs managed Cloudrun on the cluster.
-	// Default value for Cloudrun is false.
+	// Default value for Cloudrun is false
 	//
 	// See  https://cloud.google.com/run/docs/gke/setup.
-	Cloudrun *bool `yaml:"cloudrun,omitempty" default:"false"`
+	Cloudrun string `yaml:"cloudrun,omitempty" default:"false" validate:"eq=true|eq=false"`
 	// Logging enables stack driver logging for the cluster.
 	// Default value for Logging is true.
 	// Automatically send logs from the cluster to the Google Cloud Logging
 	// API.
 	// include logging.googleapis.com, logging.googleapis.com/kubernetes
-	Logging *string `yaml:"logging,omitempty" default:"logging.googleapis.com/kubernetes"` // TODO validate
+	Logging *string `yaml:"logging,omitempty" default:"logging.googleapis.com/kubernetes" validate:"eq=logging.googleapis.com/kubernetes|eq=logging.googleapis.com"`
 	// Monitoring enables stack driver logging for the cluster.
 	// Default value for Monitoring is true.
 	//
@@ -304,28 +315,28 @@ type AddonsSpec struct {
 	// Monitoring API. VM metrics will be collected by Google Compute Engine
 	// regardless of this setting.
 	// monitoring.googleapis.com, monitoring.googleapis.com/kubernetes
-	Monitoring *string `yaml:"monitoring,omitempty" default:"monitoring.googleapis.com/kubernetes"` // TODO validate
+	Monitoring *string `yaml:"monitoring,omitempty" default:"monitoring.googleapis.com/kubernetes" validate:"eq=monitoring.googleapis.com/kubernetes|eq=monitoring.googleapis.com"`
 	// NetworkPolicy enables network policy for the cluster.
 	// Enable network policy enforcement for this cluster.
-	// Default value for NetworkPolicy is true.
+	// Default value for NetworkPolicy is true
 	//
 	// See https://cloud.google.com/kubernetes-engine/docs/how-to/network-policy.
-	NetworkPolicy *bool `yaml:"networkPolicy,omitempty" default:"true"`
+	NetworkPolicy string `yaml:"networkPolicy,omitempty" default:"true" validate:"eq=true|eq=false"`
 	// HPA enables horizontal pod autoscaling for the cluster.
-	// Default value for HPA is false.
+	// Default value for HPA is true
 	//
 	// See https://cloud.google.com/kubernetes-engine/docs/how-to/scaling-apps.
-	HPA *bool `yaml:"hpa,omitempty" default:"true"`
+	HPA string `yaml:"hpa,omitempty" default:"true" validate:"eq=true|eq=false"`
 	// VPA enables vertical pod autoscaling for the cluster.
-	// Default value for HPA is false.
+	// Default value for VPA is false.
 	//
 	// See https://cloud.google.com/kubernetes-engine/docs/concepts/verticalpodautoscaler.
 	VPA *bool `yaml:"vpa,omitempty" default:"false"`
-	// Autoscaling enables cluster nodepool autoscaling.
+	// ClusterAutoscaling enables cluster nodepool autoscaling.
 	// Default value Autoscaling is true.
 	//
 	// See https://cloud.google.com/kubernetes-engine/docs/concepts/cluster-autoscaler
-	Autoscaling *bool `yaml:"autoscaling,omitempty" default:"true"`
+	ClusterAutoscaling *bool `yaml:"clusterAutoscaling,omitempty" default:"true"`
 	// BinaryAuth enables binary authorization for the cluster.
 	// Default value BinaryAuth is true.
 	//

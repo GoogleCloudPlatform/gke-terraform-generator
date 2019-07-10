@@ -17,239 +17,306 @@ limitations under the License.
 // Vanilla based terraform
 
 provider "google" {
-  version = "2.7.0"
-  project = "${var.project_id}"
-  region  = "${var.region}"
+  version = "2.10.0"
+  project = var.project_id
+  region  = var.region
 }
 
 provider "google-beta" {
-  version = "2.7.0"
-  project = "${var.project_id}"
-  region  = "${var.region}"
+  version = "2.10.0"
+  project = var.project_id
+  region  = var.region
 }
 
-// TODO: - setup add capability to use remote state
-// TODO: have the TF match terraform fmt
 
-module "gke" {
-{{- if eq .Spec.Private "true" }}
-  // source = "/Users/chlove/Workspace/src/github.com/terraform-google-modules/terraform-google-kubernetes-engine/modules/beta-private-cluster"
-  source = "terraform-google-modules/kubernetes-engine/google//modules/private-cluster"
-  enable_private_endpoint    = "true"
-  enable_private_nodes       = "true"
-  {{- if .Spec.Network.Spec.MasterIPV4CIDRBlock }}
-  master_ipv4_cidr_block     = "{{ .Spec.Network.Spec.MasterIPV4CIDRBlock }}"
-  {{- end }}
-{{- else }}
-  source = "terraform-google-modules/kubernetes-engine/google"
-{{- end}}
+resource "google_container_cluster" "cluster" {
+  provider = "google-beta"
 
-  project_id = "${var.project_id}"
-  name       = "${var.cluster_name}"
-  region     = "${var.region}"
-{{- if .Spec.Zones }}
-  zones   = "${var.zones}" // FIXME we may need to convert a list to a string here
-{{- end}}
-  regional   = {{.Spec.Regional}}
-  kubernetes_version    = "{{.Spec.Version}}"
+  name     = var.cluster_name
+  project  = var.project_id
+  location = var.region
+  //TODO support zonal clusters
 
-  network           = "${module.gke-network.network_name}"
-  subnetwork        = "${module.gke-network.subnets_names[0]}"
-  ip_range_pods     = "${module.gke-network.network_name}-${var.cluster_name}-pod-range"
-  ip_range_services = "${module.gke-network.network_name}-${var.cluster_name}-service-range"
+  network    = google_compute_network.network.self_link
+  subnetwork = google_compute_subnetwork.subnetwork.self_link
 
-  /* dashboard is being deprecated, so do not install it */
-  kubernetes_dashboard        = "false"
-  http_load_balancing         = "{{.Spec.Addons.HTTPLoadBalancing}}"
-  network_policy              = "{{.Spec.Addons.NetworkPolicy}}"
-  horizontal_pod_autoscaling  = "{{.Spec.Addons.HPA}}"
-  // TODO add psp, binary auth, cloudrun, istio
-  // TODO double check I am not missing anything else
-  // enable_binary_authorization = "{{.Spec.Addons.BinaryAuth}}"
-  // istio = "{{.Spec.Addons.Istio}}"
-  // cloudrun = "{{.Spec.Addons.Cloudrun}}"
-  // pod_security_policy = "{{.Spec.Addons.PodSecurityPolicy}}"
+  min_master_version = "{{.Spec.Version}}"
+  logging_service    = "{{.Spec.Addons.Logging}}"
+  monitoring_service = "{{.Spec.Addons.Monitoring}}"
 
-  service_account          = "{{.Spec.ServiceAccount}}"
   remove_default_node_pool = "{{.Spec.RemoveDefaultNodePool}}"
-  {{- if .Spec.Description }}
-  description = "{{.Spec.Description}}"
-  {{- end }}
-  {{- if .Spec.IpMasqLinkLocal }}
-  ip_masq_link_local = "{{.Spec.IpMasqLinkLocal}}"
-  {{- end }}
-  {{- if .Spec.IpMasqRsyncInterval }}
-  ip_masq_rsync_interval = "{{.Spec.IpMasqRsyncInterval}}"
-  {{- end }}
-  {{- if .Spec.MaintenanceStartTime }}
-  maintenance_start_time = "{{.Spec.MaintenanceStartTime}}"
-  {{- end }}
-  {{- if .Spec.IssueClientCertificate }}
-  issue_client_certificate = "{{.Spec.IssueClientCertificate}}"
-  {{- end }}
-  {{- if .Spec.NodeVersion }}
-  node_version = "{{.Spec.NodeVersion}}"
-  {{- end }}
-  {{- if .Spec.DeployUsingPrivateEndpoint }}
-  deploy_using_private_endpoint = "{{.Spec.DeployUsingPrivateEndpoint}}"
+  initial_node_count       = 1
+
+  // Disable legacy ABAC. The default is false, but explicitly ensuring it's off
+  enable_legacy_abac = false
+
+  // Enable Binary Authorization
+  enable_binary_authorization = "{{.Spec.Addons.BinaryAuth}}"
+
+  // Configure various addons
+  addons_config {
+    // Disable the Kubernetes dashboard, which is often an attack vector. The
+    // cluster can still be managed via the GKE UI.
+    kubernetes_dashboard {
+      disabled = true
+    }
+
+    // Enable network policy (Calico)
+    network_policy_config {
+      {{- if eq .Spec.Addons.NetworkPolicy "true" }}
+      disabled = false
+      {{- else }}
+      disabled = true
+      {{- end }}
+    }
+
+    // Provide the ability to scale pod replicas based on real-time metrics
+    horizontal_pod_autoscaling {
+      {{- if eq .Spec.Addons.HPA "true" }}
+      disabled = false
+      {{- else }}
+      disabled = true
+      {{- end }}
+    }
+
+    istio_config {
+      // AUTH_MUTUAL_TLS ensures strict mTLS
+      // AUTH_NONE is required for cloud run
+      {{- if eq .Spec.Addons.Istio "true" }}
+      disabled = false
+      {{- else }}
+      disabled = true
+      {{- end }}
+      auth     = "AUTH_MUTUAL_TLS"
+    }
+
+    cloudrun_config {
+      {{- if eq .Spec.Addons.Cloudrun "true" }}
+      disabled = false
+      {{- else }}
+      disabled = true
+      {{- end }}
+    }
+  }
+
+  pod_security_policy_config {
+    enabled = "{{.Spec.Addons.PodSecurityPolicy}}"
+  }
+
+  vertical_pod_autoscaling {
+    enabled = "{{.Spec.Addons.VPA}}"
+  }
+
+  {{- if .Spec.WorkloadIdentityConfig }}
+  // Enable workload identity
+  workload_identity_config {
+    {{- range $key, $value := .Spec.WorkloadIdentityConfig }}
+    {{ $key }} = "{{ $value }}"
+    {{- end}}
+  }
   {{- end }}
 
-  {{- if .Spec.MasterAuthorizedNetworksConfig }}
-  master_authorized_networks_config = [{
-    cidr_blocks = [
-      {{- range .Spec.MasterAuthorizedNetworksConfig }}
-      {
-        cidr_block = "{{ .CidrBlock }}",
-        display_name = "{{ .DisplayName }}",
-      },
-      {{- end }}
-     ],
-  }]
-  {{- end }}
-  {{- if .Spec.DatabaseEncryption }}
-  database_encryption = [
-    {
-      state = "{{ .DatabaseEncryption.State }}",
-      key_name = "{{ .DatabaseEncryption.KeyName }}"
+  // Disable basic authentication and cert-based authentication.
+  // Empty fields for username and password are how to "disable" the 
+  // credentials from being generated.
+  master_auth {
+    username = ""
+    password = ""
+
+    client_certificate_config {
+      issue_client_certificate = "{{.Spec.IssueClientCertificate }}"
     }
-  ]
-  {{- end }}
-  {{- if .Spec.StubDomains }}
-  stub_domains = {
-    {{- range .Spec.StubDomains }}
-      {{ .ObjectMeta.Name }} = [
-        {{- range .Spec.DNSServerIPAddresses }}
-        "{{ .}}",
-        {{- end }}
-      ]
+  }
+
+  // Enable network policy configurations (like Calico) - for some reason this
+  // has to be in here twice.
+  network_policy {
+    enabled = "{{.Spec.Addons.NetworkPolicy}}"
+  }
+
+{{- if .Spec.MaintenanceStartTime }}
+  // Set the maintenance window.
+  maintenance_policy {
+    daily_maintenance_window {
+      start_time = "{{.Spec.MaintenanceStartTime}}"
+    }
+  }
+{{- end }}
+
+  // Allocate IPs in our subnetwork
+  ip_allocation_policy {
+    use_ip_aliases                = true
+    cluster_secondary_range_name  = google_compute_subnetwork.subnetwork.secondary_ip_range.0.range_name
+    services_secondary_range_name = google_compute_subnetwork.subnetwork.secondary_ip_range.1.range_name
+  }
+
+  // Specify the list of CIDRs which can access the master's API
+
+  master_authorized_networks_config {
+    {{- if .Spec.MasterAuthorizedNetworksConfig }}
+    {{- range .Spec.MasterAuthorizedNetworksConfig }}
+    {
+      cidr_block = "{{ .CidrBlock }}",
+      display_name = "{{ .DisplayName }}",
+    },
+    {{- end }}
+    {{- else }}
+    cidr_blocks {
+      cidr_block   = "10.0.0.0/8"
+      display_name = "10/8 IPs"
+    }
     {{- end }}
   }
-  {{- end }}
 
+{{- if eq .Spec.Private "true" }}
+  // Configure the cluster to have private nodes and private control plane access only
+  private_cluster_config {
+    enable_private_endpoint = "true"
+    enable_private_nodes    = "true"
+    {{- if .Spec.Network.Spec.MasterIPV4CIDRBlock }}
+    master_ipv4_cidr_block  = "{{ .Spec.Network.Spec.MasterIPV4CIDRBlock }}"
+    {{- else }}
+    master_ipv4_cidr_block  = "192.168.254.0/28"
+    {{- end }}
+  }
+{{- end}}
 
-  disable_legacy_metadata_endpoints = "true"
+  lifecycle {
+    ignore_changes = ["initial_node_count"]
+  }
 
-  // TODO need version of gke cfp module
+  timeouts {
+    create = "30m"
+    update = "30m"
+    delete = "30m"
+  }
 
-  // TODO capability to build empty nodepool
-  node_pools = [
-{{- range .Spec.NodePools}}
-    {
-      name               = "{{.Name}}"
-      machine_type       = "{{.Spec.MachineType}}"
-      {{- if .Spec.AcceleratorType}}
-      accelerator_type   = "{{.Spec.AcceleratorType}}"
-      {{- end }}
-      min_count          = {{.Spec.MinCount}}
-      max_count          = {{.Spec.MaxCount}}
-      disk_size_gb       = {{.Spec.DiskSizeGB}}
-      disk_type          = "{{.Spec.DiskType}}"
-      image_type         = "{{.Spec.ImageType}}"
-      auto_repair        = {{.Spec.AutoRepair}}
-      auto_upgrade       = {{.Spec.AutoUpgrade}}
-      preemptible        = {{.Spec.Preemptible}}
-      initial_node_count = {{.Spec.InitialNodeCount}}
-    },{{end}}
+  depends_on = [
+    "google_project_service.service",
+    "google_project_iam_member.service-account",
+    "google_project_iam_member.service-account-custom",
+    "google_compute_router_nat.nat",
   ]
 
-  node_pools_oauth_scopes = {
-    all = [
-      {{- if .Spec.OauthScopes}}
-        {{- range .Spec.OauthScopes}}
-        "{{.}}",{{end}}{{end}}
-       ]
-  {{- range .Spec.NodePools}}
+}
 
-    {{.Name}} = [
+{{- $root := . }}
+{{- range .Spec.NodePools}}
+resource "google_container_node_pool" "{{.Name}}-np" {
+  provider   = "google-beta"
+  name       = "{{.Name}}"
+  location   = var.region
+  cluster    = google_container_cluster.cluster.name
+  node_count = "{{.Spec.InitialNodeCount}}"
+
+  max_pods_per_node = {{.Spec.MaxPodsPerNode}}
+
+  {{- if .Spec.Version }}
+  version = "{{.Spec.Version}}"
+  {{- end }}
+
+  autoscaling {
+    min_node_count = {{.Spec.MinCount}}
+    max_node_count = {{.Spec.MaxCount}}
+  }
+
+  management {
+    auto_repair  = "{{.Spec.AutoRepair}}"
+    auto_upgrade = "{{.Spec.AutoUpgrade}}"
+  }
+
+  node_config {
+    machine_type    = "{{.Spec.MachineType}}"
+    disk_type       = "{{.Spec.DiskType}}"
+    disk_size_gb    = {{.Spec.DiskSizeGB}}
+    image_type      = "{{.Spec.ImageType}}"
+    preemptible     = "{{.Spec.Preemptible}}"
+    service_account = google_service_account.gke-sa.email
+
+    {{- if .Spec.AcceleratorType}}
+    guest_accelerator {
+      type  = "{{.Spec.AcceleratorType}}"
+      count = {{.Spec.AcceleratorCount}}
+    }
+    {{- end }}
+
+    oauth_scopes = [
     {{- if .Spec.OauthScopes}}
       {{- range .Spec.OauthScopes}}
-      {{.}},{{end}}{{end}}
-    ]{{end}}
-  }
+      "{{.}}",{{end}}{{end}}
+    ]
 
-  node_pools_labels = {
+    {{ if or $root.Spec.Labels .Spec.Labels -}}
+    labels = {
+    {{- if $root.Spec.Labels }}
+      {{- range $key, $value := $root.Spec.Labels }}
+      {{ $key }} = "{{ $value }}"
+      {{- end}}
+    {{- end}}
+    {{- if .Spec.Labels }}
+      {{- range $key, $value := .Spec.Labels }}
+      {{ $key }} = "{{ $value }}"
+      {{- end}}
+    {{- end}}
+    }
+    {{- end}}
 
-    all = {
-      {{if .Spec.Labels}}
-        {{range $key, $value := .Spec.Labels}}
-          {{ $key }} = "{{ $value }}"
-        {{end}}
-      {{end}}
+    {{ if or $root.Spec.Tags .Spec.Tags -}}
+    tags = [
+    {{- if $root.Spec.Tags }}
+      {{- range $value := $root.Spec.Tags }}
+      "{{ $value }}",
+      {{- end}}
+    {{- end}}
+    {{- if .Spec.Tags }}
+      {{- range $value := .Spec.Tags }}
+      "{{ $value }}",
+      {{- end}}
+    {{- end}}
+    ]
+    {{- end}}
+
+    {{- if .Spec.WorkloadMetadataConfig }}
+    // Protect node metadata
+    workload_metadata_config {
+      {{- range $key, $value := .Spec.WorkloadMetadataConfig }}
+      {{ $key }} = "{{ $value }}"
+      {{- end}}
+    }
+    {{- end }}
+
+    metadata = {
+      // Set metadata on the VM to supply more entropy
+      google-compute-enable-virtio-rng = "true"
+      // Explicitly remove GCE legacy metadata API endpoint
+      disable-legacy-endpoints = "true"
     }
 
-    {{range .Spec.NodePools}}
-
-    {{.ObjectMeta.Name}} = {
-      {{if .Spec.Labels}}
-        {{ range $key, $value := .Spec.Labels }}
-        {{ $key }} = "{{ $value }}"
-        {{end}}
-      {{end}}
-    }{{end}}
   }
 
-  node_pools_metadata = {
-    all = {
-    {{- if .Spec.Metadata}}
-      {{- range $key, $value := .Metadata }}
-        $key = "$value"
-      {{- end}}
-    {{end -}}
-    }
-    {{range .Spec.NodePools}}
-    {{.Name}} = {
-    {{- if .Spec.Metadata}}
-      {{- range $key, $value := .Spec.Metadata }}
-      $key = "$value"
-      {{- end}}
-      {{end -}}
-    }
-    {{end}}
-  }
-
-  node_pools_tags = {
-    all = [
-    {{- if .Spec.Tags}}
-      {{- range .Spec.Tags}}
-      "{{ .}}",
-      {{- end}}
-    {{end -}}
-    ]
-  {{range .Spec.NodePools}}
-    {{.ObjectMeta.Name}} = [
-    {{- if .Spec.Tags}}
-      {{- range .Spec.Tags}}
-      "{{.}}",
-      {{- end}}
-    {{end -}}
-    ]
-  {{end}}
-  }
-
-  node_pools_taints = {
-    all = [
-    {{- if .Spec.Taints }}
-      {{- range .Spec.Taints }}
-        {
-          key = "{{.Key}}"
-          value = "{{.Value}}"
-          effect = "{{.Effect}}"
-        },
-      {{- end}}
-     {{end -}}
-    ]
-    {{ range .Spec.NodePools}}
-    {{.ObjectMeta.Name}} = [
-      {{- if .Spec.Taints}}
-      {{- range .Spec.Taints}}
-      {
-        key    = "{{.Key}}"
-        value  = "{{.Value}}"
-        effect = "{{.Effect}}"
-      },
-      {{- end}}
-      {{end -}}
-    ]
-    {{end}}
-  }
+  depends_on = [
+    "google_container_cluster.cluster",
+  ]
 }
+{{- end }}
+
+//TODO Remaining items to cover
+//  + resource "google_container_cluster" "cluster" {
+//      + additional_zones            = (known after apply)
+//      + database_encryption {
+//          + key_name = (known after apply)
+//          + state    = (known after apply)
+//        }
+//      + node_pool {
+//          + node_config {
+//              + local_ssd_count   = (known after apply)
+//              + service_account   = (known after apply)
+//              + taint {
+//                  + effect = (known after apply)
+//                  + key    = (known after apply)
+//                  + value  = (known after apply)
+//                }
+//            }
+//        }
+//    }
+

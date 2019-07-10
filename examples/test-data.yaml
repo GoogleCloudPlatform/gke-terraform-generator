@@ -30,7 +30,7 @@ spec:
     podSecurityPolicy: false
     hpa: true
     vpa: false
-    autoscaling: false
+    clusterAutoscaling: false
     binaryAuth: true
     httpLoadBalancing: true
   network:

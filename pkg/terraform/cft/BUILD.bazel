@@ -25,6 +25,7 @@ go_library(
         ":gke_outputs",
         ":gke_network",
         ":gke_main",
+        ":gke_bastion",
         ],
     importpath = "partner-code.googlesource.com/gke-terraform-generator/pkg/terraform/cft",
     visibility = ["//visibility:public"],
@@ -60,4 +61,12 @@ go_embed_data(
     package = "cft",
     string = True,
     var = "GKEMainTF",
+)
+
+go_embed_data(
+    name = "gke_bastion",
+    src = ":bastion.tf.tmpl",
+    package = "cft",
+    string = True,
+    var = "GKEBastionTF",
 )

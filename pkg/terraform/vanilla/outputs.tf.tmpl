@@ -16,102 +16,102 @@ limitations under the License.
 
 output "cluster_name" {
   description = "Cluster name"
-  value       = "${module.gke.name}"
+  value       = ""
 }
 
 output "type" {
   description = "Cluster type (regional / zonal)"
-  value       = "${module.gke.type}"
+  value       = "regional"
 }
 
 output "location" {
   description = "Cluster location (region if regional cluster, zone if zonal cluster)"
-  value       = "${module.gke.location}"
+  value       = "${google_container_cluster.cluster.location}"
 }
 
 output "region" {
   description = "Cluster region"
-  value       = "${module.gke.region}"
+  value       = "${var.region}"
 }
 
 output "zones" {
   description = "List of zones in which the cluster resides"
-  value       = "${module.gke.zones}"
+  value       = "TODO"
 }
 
 output "endpoint" {
   sensitive   = true
   description = "Cluster endpoint"
-  value       = "${module.gke.endpoint}"
+  value       = "${google_container_cluster.cluster.endpoint}"
 }
 
 output "min_master_version" {
   description = "Minimum master kubernetes version"
-  value       = "${module.gke.min_master_version}"
+  value       = "TODO"
 }
 
 output "logging_service" {
   description = "Logging service used"
-  value       = "${module.gke.logging_service}"
+  value       = "TODO"
 }
 
 output "monitoring_service" {
   description = "Monitoring service used"
-  value       = "${module.gke.monitoring_service}"
+  value       = "TODO"
 }
 
 output "master_authorized_networks_config" {
   description = "Networks from which access to master is permitted"
-  value       = "${module.gke.master_authorized_networks_config}"
+  value       = "TODO"
 }
 
 output "master_version" {
   description = "Current master kubernetes version"
-  value       = "${module.gke.master_version}"
+  value       = "TODO"
 }
 
 output "ca_certificate" {
   sensitive   = true
   description = "Cluster ca certificate (base64 encoded)"
-  value       = "${module.gke.ca_certificate}"
+  value       = "TODO"
 }
 
 output "network_policy_enabled" {
   description = "Whether network policy enabled"
-  value       = "${module.gke.network_policy_enabled}"
+  value       = "TODO"
 }
 
 output "http_load_balancing_enabled" {
   description = "Whether http load balancing enabled"
-  value       = "${module.gke.http_load_balancing_enabled}"
+  value       = "TODO"
 }
 
 output "horizontal_pod_autoscaling_enabled" {
   description = "Whether horizontal pod autoscaling enabled"
-  value       = "${module.gke.horizontal_pod_autoscaling_enabled}"
+  value       = "TODO"
 }
 
 output "kubernetes_dashboard_enabled" {
   description = "Whether kubernetes dashboard enabled"
-  value       = "${module.gke.kubernetes_dashboard_enabled}"
+  value       = "TODO"
 }
 
 output "node_pools_names" {
   description = "List of node pools names"
-  value       = "${module.gke.node_pools_names}"
+  value       = "TODO"
 }
 
 output "node_pools_versions" {
   description = "List of node pools versions"
-  value       = "${module.gke.node_pools_versions}"
+  value       = "TODO"
 }
 
 output "service_account" {
   description = "The service account to default running nodes as if not overridden in `node_pools`."
-  value       = "${module.gke.service_account}"
+  value       = "TODO"
 }
 
 output "network_name" {
-  value       = "${module.gke-network.network_name}"
+  value       = "TODO"
   description = "The name of the VPC being created"
 }

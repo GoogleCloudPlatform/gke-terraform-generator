@@ -98,23 +98,14 @@ func SetApiDefaultValues(gkeTF *GkeTF, configFile string) error {
 		if original.Spec.Addons.PodSecurityPolicy != nil {
 			*gkeTF.Spec.Addons.PodSecurityPolicy = *original.Spec.Addons.PodSecurityPolicy
 		}
-		if original.Spec.Addons.NetworkPolicy != nil {
-			*gkeTF.Spec.Addons.NetworkPolicy = *original.Spec.Addons.NetworkPolicy
-		}
-		if original.Spec.Addons.Istio != nil {
-			*gkeTF.Spec.Addons.Istio = *original.Spec.Addons.Istio
-		}
 		if original.Spec.Addons.HTTPLoadBalancing != nil {
 			*gkeTF.Spec.Addons.HTTPLoadBalancing = *original.Spec.Addons.HTTPLoadBalancing
 		}
 		if original.Spec.Addons.BinaryAuth != nil {
 			*gkeTF.Spec.Addons.BinaryAuth = *original.Spec.Addons.BinaryAuth
 		}
-		if original.Spec.Addons.Autoscaling != nil {
-			*gkeTF.Spec.Addons.Autoscaling = *original.Spec.Addons.Autoscaling
-		}
-		if original.Spec.Addons.Cloudrun != nil {
-			*gkeTF.Spec.Addons.Cloudrun = *original.Spec.Addons.Cloudrun
+		if original.Spec.Addons.ClusterAutoscaling != nil {
+			*gkeTF.Spec.Addons.ClusterAutoscaling = *original.Spec.Addons.ClusterAutoscaling
 		}
 	}
 

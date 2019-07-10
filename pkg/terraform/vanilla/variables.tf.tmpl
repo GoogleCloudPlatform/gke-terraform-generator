@@ -14,18 +14,33 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-variable "cluster_name" {
-  description = ""
-  default = "{{.ObjectMeta.Name}}"
-}
-
 variable "project_id" {
-  description = ""
+  description = <<-EOF
+  GCP Project ID where all components will be deployed.
+  EOF
   default = "{{.Spec.ProjectId}}"
 }
 
+variable "project_services" {
+  type = "list"
+
+  default = [
+    "cloudresourcemanager.googleapis.com",
+    "container.googleapis.com",
+    "compute.googleapis.com",
+    "iam.googleapis.com",
+    "logging.googleapis.com",
+    "monitoring.googleapis.com",
+  ]
+  description = <<-EOF
+  The GCP APIs that should be enabled in this project.
+  EOF
+}
+
 variable "region" {
-  description = ""
+  description = <<-EOF
+  GCP Region where the components will be deployed.
+  EOF 
   default = "{{.Spec.Region}}"
 }
 
@@ -34,6 +49,37 @@ variable "zones" {
   description = ""
   // TODO fix bug when we have a single zone
   // TODO fix bug when we do not have zones
-  default = ["{{StringsJoin .Spec.Zones "\",\""}}"]
+  default = ["{{StringsJoin .Spec.Zones "\", \""}}"]
 }
 {{- end}}
+
+// GKE
+
+variable "cluster_name" {
+  description = "The name of the GKE cluster"
+  default = "{{.ObjectMeta.Name}}"
+}
+
+variable "service_account_iam_roles" {
+  type = "list"
+
+  default = [
+    "roles/logging.logWriter",
+    "roles/monitoring.metricWriter",
+    "roles/monitoring.viewer",
+  ]
+  description = <<-EOF
+  List of the default IAM roles to attach to the service account on the
+  GKE Nodes.
+  EOF
+}
+
+variable "service_account_custom_iam_roles" {
+  type    = "list"
+  default = []
+
+  description = <<-EOF
+  List of arbitrary additional IAM roles to attach to the service account on
+  the GKE nodes.
+  EOF
+}
