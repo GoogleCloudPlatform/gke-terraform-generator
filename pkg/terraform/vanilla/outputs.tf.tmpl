@@ -16,102 +16,42 @@ limitations under the License.
 
 output "cluster_name" {
   description = "Cluster name"
-  value       = ""
+  value       = var.cluster_name
 }
 
-output "type" {
-  description = "Cluster type (regional / zonal)"
-  value       = "regional"
+output "cluster_location" {
+  description = "Cluster location"
+  value       = var.region
 }
 
-output "location" {
-  description = "Cluster location (region if regional cluster, zone if zonal cluster)"
-  value       = "${google_container_cluster.cluster.location}"
-}
-
-output "region" {
-  description = "Cluster region"
-  value       = "${var.region}"
-}
-
-output "zones" {
-  description = "List of zones in which the cluster resides"
-  value       = "TODO"
-}
-
-output "endpoint" {
-  sensitive   = true
+output "cluster_endpoint" {
   description = "Cluster endpoint"
-  value       = "${google_container_cluster.cluster.endpoint}"
+  value       = google_container_cluster.cluster.endpoint
 }
 
-output "min_master_version" {
-  description = "Minimum master kubernetes version"
-  value       = "TODO"
-}
-
-output "logging_service" {
-  description = "Logging service used"
-  value       = "TODO"
-}
-
-output "monitoring_service" {
-  description = "Monitoring service used"
-  value       = "TODO"
-}
-
-output "master_authorized_networks_config" {
-  description = "Networks from which access to master is permitted"
-  value       = "TODO"
-}
-
-output "master_version" {
-  description = "Current master kubernetes version"
-  value       = "TODO"
-}
-
-output "ca_certificate" {
+output "cluster_ca_certificate" {
   sensitive   = true
   description = "Cluster ca certificate (base64 encoded)"
-  value       = "TODO"
+  value       = google_container_cluster.cluster.master_auth[0].cluster_ca_certificate
 }
 
-output "network_policy_enabled" {
-  description = "Whether network policy enabled"
-  value       = "TODO"
+output "get_credentials" {
+  description = "Gcloud get-credentials command"
+  {{- if eq .Spec.Private "true" }}
+  value       = format("gcloud container clusters get-credentials --project %s --region %s --internal-ip %s", var.project_id, var.region, var.cluster_name)
+  {{- else }}
+  value       = format("gcloud container clusters get-credentials --project %s --region %s %s", var.project_id, var.region, var.cluster_name)
+  {{- end }}
 }
 
-output "http_load_balancing_enabled" {
-  description = "Whether http load balancing enabled"
-  value       = "TODO"
+{{- if eq .Spec.Private "true" }}
+output "bastion_ssh" {
+  description = "Gcloud compute ssh to the bastion host command"
+  value       = format("gcloud compute ssh %s --project %s --zone %s -- -L8888:127.0.0.1:8888", google_compute_instance.instance.name, var.project_id, google_compute_instance.instance.zone)
 }
 
-output "horizontal_pod_autoscaling_enabled" {
-  description = "Whether horizontal pod autoscaling enabled"
-  value       = "TODO"
+output "bastion_kubectl" {
+  description = "kubectl command using the local proxy once the bastion_ssh command is running"
+  value       = "HTTPS_PROXY=localhost:8888 kubectl get pods --all-namespaces"
 }
-
-output "kubernetes_dashboard_enabled" {
-  description = "Whether kubernetes dashboard enabled"
-  value       = "TODO"
-}
-
-output "node_pools_names" {
-  description = "List of node pools names"
-  value       = "TODO"
-}
-
-output "node_pools_versions" {
-  description = "List of node pools versions"
-  value       = "TODO"
-}
-
-output "service_account" {
-  description = "The service account to default running nodes as if not overridden in `node_pools`."
-  value       = "TODO"
-}
-
-output "network_name" {
-  value       = "TODO"
-  description = "The name of the VPC being created"
-}
+{{- end }}

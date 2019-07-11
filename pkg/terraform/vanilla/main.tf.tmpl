@@ -117,7 +117,7 @@ resource "google_container_cluster" "cluster" {
   {{- end }}
 
   // Disable basic authentication and cert-based authentication.
-  // Empty fields for username and password are how to "disable" the 
+  // Empty fields for username and password are how to "disable" the
   // credentials from being generated.
   master_auth {
     username = ""
@@ -301,22 +301,23 @@ resource "google_container_node_pool" "{{.Name}}-np" {
 {{- end }}
 
 //TODO Remaining items to cover
-//  + resource "google_container_cluster" "cluster" {
-//      + additional_zones            = (known after apply)
-//      + database_encryption {
-//          + key_name = (known after apply)
-//          + state    = (known after apply)
-//        }
-//      + node_pool {
-//          + node_config {
-//              + local_ssd_count   = (known after apply)
-//              + service_account   = (known after apply)
-//              + taint {
-//                  + effect = (known after apply)
-//                  + key    = (known after apply)
-//                  + value  = (known after apply)
-//                }
-//            }
-//        }
-//    }
-
+// Cluster
+// - enable_tpu=false
+// - ? tpu cidr ?
+// - tpu_ipv4_cidr_block="cidr-string"
+// - resource_usage_export_config - map { enable_network_egress_metering: true, [{ "bigquery_destination" : "destination }]
+// - enable_intranode_visibility=true
+// - database_encryption {
+//     + key_name = (known after apply)
+//     + state    = (known after apply)
+//   }
+// - node_locations
+// - additional_zones
+// - enable_kubernetes_alpha
+//
+// Nodes
+// - local_ssd_count
+// - min_cpu_platform
+// - sandbox_config
+// - service_account
+// - taints

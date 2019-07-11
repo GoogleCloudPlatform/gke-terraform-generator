@@ -177,7 +177,7 @@ type NodePoolSpec struct {
 	// This value defaults to 1.
 	MaxCount int16 `yaml:"maxCount" default:"1" validate:"gtefield=MinCount,lte=2000"`
 	// MaxPodsPerNode of the nodepool. Controls the subnet slicing per node.  See
-        // https://cloud.google.com/kubernetes-engine/docs/how-to/flexible-pod-cidr
+	// https://cloud.google.com/kubernetes-engine/docs/how-to/flexible-pod-cidr
 	// This value defaults to 110.
 	MaxPodsPerNode int16 `yaml:"maxPodsPerNode" default:"110" validate:"gte=8,lte=110"`
 	// MachineType of the nodepool, which defaults to a n1-standard-1. See
@@ -211,8 +211,8 @@ type NodePoolSpec struct {
 	DiskType string `yaml:"diskType" default:"pd-ssd" validate:"eq=pd-ssd|eq=pd-standard"`
 	// ImageType is the node operating system.
 	// See https://cloud.google.com/kubernetes-engine/docs/concepts/node-images.
-	// Values can be cos, cos_containerd or ubuntu, and it defaults to cos.
-	ImageType string `yaml:"imageType" default:"cos" validate:"eq=cos|eq=ubuntu|eq=cos_containerd"`
+	// Values can be COS, COS_CONTAINERD or UBUNTU, and it defaults to COS..
+	ImageType string `yaml:"imageType" default:"COS" validate:"eq=COS|eq=UBUNTU|eq=COS_CONTAINERD"`
 
 	// InitialNodeCount is the number of nodes created at inception of the cluster.
 	// This value defaults to 1.
@@ -234,7 +234,7 @@ type NodePoolSpec struct {
 	Labels   *map[string]string `yaml:"labels"`
 	Metadata *map[string]string `yaml:"metadata"`
 	// Workload Metadata is a map of configuration options for securing GKE metadata APIs
-        // node_metadata = "" or "EXPOSED", "SECURE" (Metadata Proxy), "GKE_METADATA_SERVER" (Workload Identity)
+	// node_metadata = "" or "EXPOSED", "SECURE" (Metadata Proxy), "GKE_METADATA_SERVER" (Workload Identity)
 	WorkloadMetadataConfig *map[string]string `yaml:"workloadMetadataConfig" validate:"omitempty"`
 
 	AcceleratorType  *string `yaml:"acceleratorType,omitempty"`
