@@ -103,8 +103,10 @@ type ClusterSpec struct {
 	// This value defaults to the value "create", which creates a new service account for the cluster.
 	ServiceAccount *string `yaml:"serviceAccount" default:"create"`
 
-	// Workload Identity //TODO
-	WorkloadIdentityConfig *map[string]string `yaml:"workloadIdentityConfig" validate:"omitempty"`
+	// Workload Identity
+	// This enables WI at the cluster level.  Requires WorkloadMetadataConfig spec on each node pool.
+	// https://cloud.google.com/kubernetes-engine/docs/how-to/workload-identity
+	WorkloadIdentityConfig *WorkloadIdentityConfigSpec `yaml:"workloadIdentityConfig" validate:"omitempty,dive"`
 
 	// TODO check if we have this
 	DeployUsingPrivateEndpoint *bool `yaml:"deployUsingPrivateEndpoint"`
@@ -165,6 +167,14 @@ type StubDomainsSpec struct {
 	TypeMeta             `yaml:",inline"`
 	ObjectMeta           `yaml:"metadata,omitempty"`
 	DNSServerIPAddresses []string `yaml:"dnsServerIPAddresses" validate:"required,dive,ipv4"`
+}
+
+// WorkloadIdentityConfigSpec holds the cluster-scoped setting for which
+// Identity Namespace to use for this cluster
+// https://cloud.google.com/kubernetes-engine/docs/how-to/workload-identity
+type WorkloadIdentityConfigSpec struct {
+	// The Identity Namespace to use.  Typically "<project-name>.svc.id.goog"
+	IdentityNamespace *string `yaml:"identityNamespace" validate:"required"`
 }
 
 // NodePoolSpec API struct that represents a GKE Nodepool.
@@ -234,12 +244,22 @@ type NodePoolSpec struct {
 	Labels   *map[string]string `yaml:"labels"`
 	Metadata *map[string]string `yaml:"metadata"`
 	// Workload Metadata is a map of configuration options for securing GKE metadata APIs
-	// node_metadata = "" or "EXPOSED", "SECURE" (Metadata Proxy), "GKE_METADATA_SERVER" (Workload Identity)
-	WorkloadMetadataConfig *map[string]string `yaml:"workloadMetadataConfig" validate:"omitempty"`
+	// This setting is per node pool
+	WorkloadMetadataConfig *WorkloadMetadataConfigSpec `yaml:"workloadMetadataConfig" validate:"omitempty,dive"`
 
 	AcceleratorType  *string `yaml:"acceleratorType,omitempty"`
 	AcceleratorCount int16   `yaml:"acceleratorCount,omitempty"`
 	ServiceAccount   *string `yaml:"serviceAccount"`
+}
+
+// Defines how pods on this node pool can interact (or not) with the GCE Metadata APIs.
+// https://cloud.google.com/kubernetes-engine/docs/how-to/workload-identity
+// UNSPECIFIED = not set, EXPOSED = off, SECURE = Metadata Concealment, 
+// GKE_METADATA_SERVER = workload identity and metadata concealment combined.
+type WorkloadMetadataConfigSpec struct {
+	// How to expose the node metadata to the workload running on the node.
+        // https://www.terraform.io/docs/providers/google/r/container_cluster.html#node_metadata
+	NodeMetadata *string `yaml:"nodeMetadata" validate:"required,eq=UNSPECIFIED|eq=EXPOSED|eq=SECURE|eq=GKE_METADATA_SERVER"`
 }
 
 // Todo I need to look at the API to figure out how to validate TaintSpec

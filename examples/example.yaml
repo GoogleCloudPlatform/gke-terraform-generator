@@ -67,7 +67,7 @@ spec:
         labels:
           seven: "eight"
         workloadMetadataConfig:
-          node_metadata: "SECURE"
+          nodeMetadata: "SECURE"
     - metadata:
         name: my-other-nodepool
       spec:
@@ -85,7 +85,7 @@ spec:
         - red
         - white
         workloadMetadataConfig:
-          node_metadata: "GKE_METADATA_SERVER"
+          nodeMetadata: "SECURE"
     - metadata:
         name: my-third-nodepool
       spec:
