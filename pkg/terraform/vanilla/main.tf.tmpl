@@ -34,8 +34,18 @@ resource "google_container_cluster" "cluster" {
 
   name     = var.cluster_name
   project  = var.project_id
+
+  {{- if eq .Spec.Regional "true" }}
+  // Regional Cluster
   location = var.region
-  //TODO support zonal clusters
+  {{- if .Spec.Zones }}
+  node_locations = var.zones
+  {{- end}}
+  {{- else}}
+  // Zonal Cluster
+  location       = var.zones[0]
+  node_locations = var.zones
+  {{- end}}
 
   network    = google_compute_network.network.self_link
   subnetwork = google_compute_subnetwork.subnetwork.self_link
@@ -52,6 +62,28 @@ resource "google_container_cluster" "cluster" {
 
   // Enable Binary Authorization
   enable_binary_authorization = "{{.Spec.Addons.BinaryAuth}}"
+
+  // Default Maximum Pods Per Node for all Node Pools
+  // NodePool max_pods_per_node overrides for that node pool
+  default_max_pods_per_node = {{.Spec.DefaultMaxPodsPerNode}}
+
+  {{- if .Spec.DatabaseEncryption }}
+  // Application layer secrets encryption
+  database_encryption {
+    key_name = "{{.Spec.DatabaseEncryption.KeyName}}"
+    state    = "{{.Spec.DatabaseEncryption.State}}"
+  }
+  {{- end }}
+
+  {{- if .Spec.ResourceUsageExportConfig }}
+  // Export usage to BigQuery
+  resource_usage_export_config {
+    enable_network_egress_metering = "{{.Spec.ResourceUsageExportConfig.EnableNetworkEgressMetering}}"
+    bigquery_destination {
+      dataset_id = "{{.Spec.ResourceUsageExportConfig.DatasetId}}"
+    }
+  }
+  {{- end }}
 
   // Configure various addons
   addons_config {
@@ -98,6 +130,23 @@ resource "google_container_cluster" "cluster" {
       {{- end }}
     }
   }
+
+  {{- if .Spec.Tpu}}
+  // Enable TPU support for the cluster
+  enable_tpu = "{{.Spec.Tpu}}"
+  {{- end }}
+
+  {{- if .Spec.IntraNodeVisibility}}
+  // Enable intranode visibility
+  // Requires enabling VPC Flow Logging on the subnet first
+  enable_intranode_visibility = "{{.Spec.IntraNodeVisibility}}"
+  {{- end }}
+
+  {{- if .Spec.Alpha}}
+  // Enable Kubernetes Alpha support
+  // NOTE: This cluster will only live for 30 days
+  enable_kubernetes_alpha = "{{.Spec.Alpha}}"
+  {{- end }}
 
   pod_security_policy_config {
     enabled = "{{.Spec.Addons.PodSecurityPolicy}}"
@@ -153,10 +202,10 @@ resource "google_container_cluster" "cluster" {
   master_authorized_networks_config {
     {{- if .Spec.MasterAuthorizedNetworksConfig }}
     {{- range .Spec.MasterAuthorizedNetworksConfig }}
-    {
-      cidr_block = "{{ .CidrBlock }}",
-      display_name = "{{ .DisplayName }}",
-    },
+    cidr_blocks {
+      cidr_block = "{{ .CidrBlock }}"
+      display_name = "{{ .DisplayName }}"
+    }
     {{- end }}
     {{- else }}
     cidr_blocks {
@@ -229,7 +278,21 @@ resource "google_container_node_pool" "{{.Name}}-np" {
     disk_size_gb    = {{.Spec.DiskSizeGB}}
     image_type      = "{{.Spec.ImageType}}"
     preemptible     = "{{.Spec.Preemptible}}"
+    local_ssd_count = {{.Spec.LocalSSDCount}}
+
+
+    {{- if .Spec.ServiceAccount}}
+    // Use a custom service account for this node pool
+    service_account = "{{.Spec.ServiceAccount}}"
+    {{- else }}
+    // Use the cluster created service account for this node pool
     service_account = google_service_account.gke-sa.email
+    {{- end }}
+
+    {{- if .Spec.MinCpuPlatform}}
+    min_cpu_platform = "{{.Spec.MinCpuPlatform}}"
+    {{- end }}
+
 
     {{- if .Spec.AcceleratorType}}
     guest_accelerator {
@@ -243,6 +306,39 @@ resource "google_container_node_pool" "{{.Name}}-np" {
       {{- range .Spec.OauthScopes}}
       "{{.}}",{{end}}{{end}}
     ]
+
+    {{- if .Spec.Gvisor }}
+    // Enable GKE Sandboxy (Gvisor) on this node pool
+    sandbox_config {
+      sandbox_type = "gvisor"
+    }
+    {{- end }}
+
+    {{ if or $root.Spec.Taints .Spec.Taints -}}
+    {{- if $root.Spec.Taints }}
+    {{- range $root.Spec.Taints }}
+    taint {
+      key    = "{{.Key}}"
+      {{- if .Value}}
+      value  = "{{.Value}}"
+      {{- end}}
+      effect = "{{.Effect}}"
+    }
+    {{- end}}
+    {{- end}}
+
+    {{- if .Spec.Taints }}
+    {{- range .Spec.Taints }}
+    taint {
+      key    = "{{.Key}}"
+      {{- if .Value}}
+      value  = "{{.Value}}"
+      {{- end}}
+      effect = "{{.Effect}}"
+    }
+    {{- end}}
+    {{- end}}
+    {{- end}}
 
     {{ if or $root.Spec.Labels .Spec.Labels -}}
     labels = {
@@ -295,25 +391,3 @@ resource "google_container_node_pool" "{{.Name}}-np" {
   ]
 }
 {{- end }}
-
-//TODO Remaining items to cover
-// Cluster
-// - enable_tpu=false
-// - ? tpu cidr ?
-// - tpu_ipv4_cidr_block="cidr-string"
-// - resource_usage_export_config - map { enable_network_egress_metering: true, [{ "bigquery_destination" : "destination }]
-// - enable_intranode_visibility=true
-// - database_encryption {
-//     + key_name = (known after apply)
-//     + state    = (known after apply)
-//   }
-// - node_locations
-// - additional_zones
-// - enable_kubernetes_alpha
-//
-// Nodes
-// - local_ssd_count
-// - min_cpu_platform
-// - sandbox_config
-// - service_account
-// - taints

@@ -51,7 +51,7 @@ type ClusterSpec struct {
 	// This value will be used for the GKE nodepools as well, unless a nodepool has a version.
 	Version string `yaml:"version" default:"latest" validate:"required"`
 	// Regional denotes if the GKE cluster will be created as a regional cluster.
-	Regional *bool `yaml:"regional,omitempty" validate:"required" default:"true"`
+	Regional string `yaml:"regional,omitempty" default:"true" validate:"eq=true|eq=false"`
 
 	// RemoveDefaultNodePool enables the removal of the default GKE nodepool, which is the best practice.
 	RemoveDefaultNodePool *bool `yaml:"removeDefaultNodePool,omitempty" default:"true"`
@@ -90,6 +90,8 @@ type ClusterSpec struct {
 	// Omit the nested cidr_blocks attribute to disallow external access (except the cluster node IPs, which GKE automatically whitelists)
 	MasterAuthorizedNetworksConfig *[]MasterAuthorizedNetworksConfigSpec `yaml:"masterAuthorizedNetworksConfig" validate:"omitempty,dive"`
 
+	// Export cluster resource usage to an external database. e.g. BigQuery
+	ResourceUsageExportConfig *ResourceUsageExportConfigSpec `yaml:"resourceUsageExportConfig" validate:"omitempty,dive"`
 	// StubDomains and their resolvers to forward DNS queries for a certain domain to an external DNS server.
 	StubDomains *[]StubDomainsSpec `yaml:"stubDomains" validate:"omitempty,dive"`
 
@@ -110,6 +112,24 @@ type ClusterSpec struct {
 
 	// TODO check if we have this
 	DeployUsingPrivateEndpoint *bool `yaml:"deployUsingPrivateEndpoint"`
+
+	// DefaultMaxPodsPerNode for all node pools. Controls the subnet slicing per node.  See
+	// https://cloud.google.com/kubernetes-engine/docs/how-to/flexible-pod-cidr
+	// This value defaults to 110.
+	DefaultMaxPodsPerNode int16 `yaml:"defaultMaxPodsPerNode" default:"110" validate:"gte=8,lte=110"`
+
+	// Enable TPU support
+	// https://cloud.google.com/tpu/docs/kubernetes-engine-setuphttps://cloud.google.com/tpu/docs/kubernetes-engine-setup
+	Tpu string `yaml:"tpu,omitempty" default:"false" validate:"eq=true|eq=false"`
+
+	// Enable Kubernetes Alpha support
+	// https://cloud.google.com/kubernetes-engine/docs/concepts/alpha-clusters
+	Alpha string `yaml:"alpha,omitempty" default:"false" validate:"eq=true|eq=false"`
+
+	// Enable IntraNodeVisibility
+	// https://cloud.google.com/kubernetes-engine/docs/how-to/intranode-visibility
+	// Requires enabling VPC flow logs on the subnet first
+	IntraNodeVisibility string `yaml:"intraNodeVisibility,omitempty" default:"false" validate:"eq=true|eq=false"`
 }
 
 // GkeNetwork wraps a NetworkSpec.
@@ -154,6 +174,15 @@ type MasterAuthorizedNetworksConfigSpec struct {
 	CidrBlock *string `yaml:"cidrBlock" validate:"cidrv4"`
 	// DisplayName is the display_name in terraform.
 	DisplayName *string `yaml:"displayName" validate:"required"`
+}
+
+// ResourceUsageExportConfig models the desired configuration options for exporting usage
+// to BigQuery
+type ResourceUsageExportConfigSpec struct {
+	// Enable network egress metering
+	EnableNetworkEgressMetering *string `yaml:"enableNetworkEgressMetering" default: "false" validate:"eq=false|eq=true"`
+	// The BigQuery dataset to send data to
+	DatasetId *string `yaml:"datasetId" validate:"required"`
 }
 
 type DatabaseEncryptionSpec struct {
@@ -215,10 +244,14 @@ type NodePoolSpec struct {
 	Version *string `yaml:"version,omitempty"`
 	// DiskSizeGB is the node disk size.
 	// This value defaults to 100.
-	DiskSizeGB int `yaml:"diskSizeGB" default:"100"` // TODO validate that this is a positive number
+	DiskSizeGB int `yaml:"diskSizeGB" default:"100", validate:"gte=10,lte=65536"`
 	// DiskType is the node disk type.
 	// Values can be pd-ssd or pd-standard, and it defaults to pd-ssd.
 	DiskType string `yaml:"diskType" default:"pd-ssd" validate:"eq=pd-ssd|eq=pd-standard"`
+	// LocalSSDCount is the number of 375GB SSDs attached to each GKE worker node as extra
+	// scratch space.  These are not formatted and must be configured via daemonset or other
+	// means to be useful.
+	LocalSSDCount int `yaml:"localSSDCount" default:"0" validate:"gte=0,lte=2"`
 	// ImageType is the node operating system.
 	// See https://cloud.google.com/kubernetes-engine/docs/concepts/node-images.
 	// Values can be COS, COS_CONTAINERD or UBUNTU, and it defaults to COS..
@@ -227,6 +260,11 @@ type NodePoolSpec struct {
 	// InitialNodeCount is the number of nodes created at inception of the cluster.
 	// This value defaults to 1.
 	InitialNodeCount int16 `yaml:"initialNodeCount" validate:"required,ltefield=MaxCount" default:"1"`
+	// Min CPU Platform
+	// See https://cloud.google.com/kubernetes-engine/docs/how-to/min-cpu-platform
+	// Run `gcloud compute zones describe <zone>` and view the `availableCpuPlatforms`
+	// Valid values today are "Intel Broadwell" or "Intel Haswell"
+	MinCpuPlatform string `yaml:"minCpuPlatform,omitempty" validate="eq='Intel Broadwell'|eq='Intel Haswell'"`
 
 	// Tags slice containing node network tags for this specific nodepool.
 	// See https://cloud.google.com/vpc/docs/add-remove-network-tags.
@@ -249,7 +287,12 @@ type NodePoolSpec struct {
 
 	AcceleratorType  *string `yaml:"acceleratorType,omitempty"`
 	AcceleratorCount int16   `yaml:"acceleratorCount,omitempty"`
-	ServiceAccount   *string `yaml:"serviceAccount"`
+	// Specify an existing SA to use for the node pool instead of the one automatically
+	// generated for this cluster.
+	ServiceAccount *string `yaml:"serviceAccount" validate:"omitempty,email"`
+	// Gvisor (GKE Sandbox) - Enabled per node pool
+	// https://cloud.google.com/kubernetes-engine/docs/how-to/sandbox-pods
+	Gvisor string `yaml:"gvisor" default:"false" validate:"eq=true|eq=false"`
 }
 
 // Defines how pods on this node pool can interact (or not) with the GCE Metadata APIs.
@@ -262,13 +305,11 @@ type WorkloadMetadataConfigSpec struct {
 	NodeMetadata *string `yaml:"nodeMetadata" validate:"required,eq=UNSPECIFIED|eq=EXPOSED|eq=SECURE|eq=GKE_METADATA_SERVER"`
 }
 
-// Todo I need to look at the API to figure out how to validate TaintSpec
-
 // TaintSpec models a Kubernetes Node Taint.
 //
 // See https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
-// and
 // https://cloud.google.com/kubernetes-engine/docs/how-to/node-taints.
+// https://www.terraform.io/docs/providers/google/r/container_cluster.html#taint
 //
 // For example:
 //
@@ -278,16 +319,24 @@ type WorkloadMetadataConfigSpec struct {
 //	  value: "value"
 //	  effect: "NoSchedule"
 //
+// Becomes:
+// taints:
+// - key: "key"
+//   value: "value"
+//   effect: "NO_SCHEDULE"
+//
 type TaintSpec struct {
-
-	// TODO need validation
-
 	// Key is the key value in a taint.
-	Key string `yaml:"key"`
+	// blah.com/asdf = DNS 1123 Subdomain + slash + up to 63 chars
+	// TODO Closely validate Key and Value
+	// https://github.com/kubernetes/apimachinery/blob/master/pkg/util/validation/validation.go
+	Key string `yaml:"key" validate:"gt=0,lte=250"`
 	// Value is the value field in a taint.
-	Value string `yaml:"value"`
+	Value string `yaml:"value,omitempty" validate:"lte=63"`
 	// Effect is the effect field in a taint.
-	Effect string `yaml:"effect"`
+	// https://www.terraform.io/docs/providers/google/r/container_cluster.html#taint
+	// NO_SCHEDULE, PREFER_NO_SCHEDULE, and NO_EXECUTE
+	Effect string `yaml:"effect" validate:"eq=NO_SCHEDULE|eq=PREFER_NO_SCHEDULE|eq=NO_EXECUTE`
 }
 
 // AddonsSpec is struct that contains multiple bool flags that are used to denote which addons are to be installed.

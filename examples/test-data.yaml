@@ -64,9 +64,9 @@ spec:
     - blue
     - green
   masterAuthorizedNetworksConfig:
-    - cidrBlock: "176.23.40/16"
+    - cidrBlock: "176.23.0.0/16"
       displayName: "foo"
-    - cidrBlock: "10.0.0.42/24"
+    - cidrBlock: "10.0.0.0/24"
       displayName: "bar"
   databaseEncryption:
     state: ENCRYPTED

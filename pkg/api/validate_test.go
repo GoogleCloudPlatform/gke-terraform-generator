@@ -36,23 +36,6 @@ func TestValidate(t *testing.T) {
 	}
 }
 
-func TestValidateImageType(t *testing.T) {
-
-	gkeTF := parseYAML(t, configFile)
-
-	nodes := *gkeTF.Spec.NodePools
-	nodes[0].Spec.ImageType = "foo"
-
-	if err := SetApiDefaultValues(gkeTF, configFile); err != nil {
-		t.Fatalf("failed %v", err)
-	}
-
-	if err := ValidateYamlInput(gkeTF); err == nil {
-		t.Fatal("this should have failed")
-	}
-
-}
-
 func TestCIDR(t *testing.T) {
 	gkeTF := parseYAML(t, configFile)
 
@@ -77,8 +60,8 @@ func TestValidation(t *testing.T) {
 		t.Fatalf("failed %v", err)
 	}
 
-	if err := ValidateYamlInput(gkeTF); err == nil {
-		t.Fatal("this should have passed")
+	if err := ValidateYamlInput(gkeTF); err != nil {
+		t.Fatal(err)
 	}
 
 	domains := *gkeTF.Spec.StubDomains

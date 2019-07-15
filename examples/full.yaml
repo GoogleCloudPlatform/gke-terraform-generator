@@ -18,7 +18,13 @@ metadata:
 spec:
   private: true
   region: "us-east4"
-  regional: false
+  regional: true
+  databaseEncryption:
+    keyName: "projects/bgeesaman-gke-demos/locations/us-central1/keyRings/b/cryptoKeys/b"
+    state: "ENCRYPTED"
+  resourceUsageExportConfig:
+    enableNetworkEgressMetering: true
+    datasetId: "mybqdatasetid"
   addons:
     istio: false
     logging: "logging.googleapis.com/kubernetes"
@@ -42,8 +48,20 @@ spec:
       serviceSubnetRange: "10.2.0.0/20"
       masterIPV4CIDRBlock: "172.16.0.16/28"
   version: latest
+  masterAuthorizedNetworksConfig:
+    - cidrBlock: "10.0.0.0/24"
+      displayName: "Everywhere"
+    - cidrBlock: "11.0.0.0/8"
+      displayName: "Everywhere"
+  taints:
+    - key: "testall"
+      value: "valueall"
+      effect: "NO_SCHEDULE"
   workloadIdentityConfig:
     identityNamespace: "bgeesaman-gke-demos.svc.id.goog"
+  defaultMaxPodsPerNode: 110
+  tpu: false
+  alpha: false
   nodePools:
     - metadata:
         name: gketf-node-pool
@@ -52,6 +70,9 @@ spec:
         machineType: n1-standard-1
         diskSizeGB: 100
         diskType: pd-ssd
+        localSSDCount: 0
+        #minCpuPlatform: "Intel Broadwell"
+        #gvisor: true
         preemptible: true
         minCount: 2
         maxCount: 10
@@ -65,6 +86,7 @@ spec:
         - "https://www.googleapis.com/auth/trace.append"
         labels:
           seven: "eight"
+        serviceAccount: "gketf-1-node-sa@bgeesaman-gke-demos.iam.gserviceaccount.com"
         workloadMetadataConfig:
           nodeMetadata: "GKE_METADATA_SERVER"
     - metadata:
@@ -83,6 +105,13 @@ spec:
         - black
         workloadMetadataConfig:
           nodeMetadata: "SECURE"
+        taints:
+          - key: "test1"
+            value: "value1"
+            effect: "NO_SCHEDULE"
+          - key: "test2"
+            value: "value2"
+            effect: "NO_EXECUTE"
   tags:
     - blue
     - green

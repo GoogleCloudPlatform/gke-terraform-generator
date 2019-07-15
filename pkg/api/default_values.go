@@ -85,9 +85,6 @@ func SetApiDefaultValues(gkeTF *GkeTF, configFile string) error {
 	}
 
 	// Go through and reset values overwritten by defaults
-	if original.Spec.Regional != nil {
-		*gkeTF.Spec.Regional = *original.Spec.Regional
-	}
 	if original.Spec.RemoveDefaultNodePool != nil {
 		*gkeTF.Spec.RemoveDefaultNodePool = *original.Spec.RemoveDefaultNodePool
 	}

@@ -44,7 +44,7 @@ variable "region" {
   default = "{{.Spec.Region}}"
 }
 
-{{- if .Spec.Zones }}
+{{- if eq .Spec.Regional "false" }}
 variable "zones" {
   description = ""
   // TODO fix bug when we have a single zone
