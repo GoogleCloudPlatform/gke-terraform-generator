@@ -41,18 +41,15 @@ const (
 	VANILLA TFType = 1
 )
 
-func (day TFType) String() string {
+func (templateType TFType) String() string {
 	names := [...]string{
 		"CFT",
 		"VANILLA",
 	}
-	if day < CFT || day > VANILLA {
+	if templateType < CFT || templateType > VANILLA {
 		return "Unknown"
 	}
-	// return the name of a Weekday
-	// constant from the names array
-	// above.
-	return names[day]
+	return names[templateType]
 }
 
 type TerraformTemplate struct {
@@ -93,10 +90,6 @@ func NewGKETemplates(tfType TFType) (*GKETemplates, error) {
 				{
 					"main.tf",
 					vanilla.GKEMainTF,
-				},
-				{
-					"bastion.tf",
-					vanilla.GKEBastionTF,
 				},
 				{
 					"network.tf",
