@@ -44,13 +44,13 @@ variable "region" {
   default = "{{.Spec.Region}}"
 }
 
-{{- if eq .Spec.Regional "false" }}
+{{- if .Spec.Zones }}
+{{- if gt (len .Spec.Zones) 0 }}
 variable "zones" {
   description = ""
-  // TODO fix bug when we have a single zone
-  // TODO fix bug when we do not have zones
   default = ["{{StringsJoin .Spec.Zones "\", \""}}"]
 }
+{{- end}}
 {{- end}}
 
 // GKE

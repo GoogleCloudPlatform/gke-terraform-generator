@@ -19,12 +19,15 @@ spec:
   private: true
   region: "us-east4"
   regional: true
-  databaseEncryption:
-    keyName: "projects/bgeesaman-gke-demos/locations/us-central1/keyRings/b/cryptoKeys/b"
-    state: "ENCRYPTED"
-  resourceUsageExportConfig:
-    enableNetworkEgressMetering: true
-    datasetId: "mybqdatasetid"
+  #zones:
+  #- us-east4-a
+  #- us-east4-c
+  #databaseEncryption:
+  #  keyName: "projects/myproject/locations/us-central1/keyRings/myring/cryptoKeys/mykey"
+  #  state: "ENCRYPTED"
+  #resourceUsageExportConfig:
+  #  enableNetworkEgressMetering: true
+  #  datasetId: "mybqdatasetid"
   addons:
     istio: false
     logging: "logging.googleapis.com/kubernetes"
@@ -50,13 +53,13 @@ spec:
   version: latest
   masterAuthorizedNetworksConfig:
     - cidrBlock: "10.0.0.0/24"
-      displayName: "Everywhere"
-    - cidrBlock: "11.0.0.0/8"
-      displayName: "Everywhere"
-  taints:
-    - key: "testall"
-      value: "valueall"
-      effect: "NO_SCHEDULE"
+      displayName: "All 10s"
+    - cidrBlock: "172.20.20.0/24"
+      displayName: "Sample internal 172"
+  #taints:
+  #  - key: "testall"
+  #    value: "valueall"
+  #    effect: "NO_SCHEDULE"
   workloadIdentityConfig:
     identityNamespace: "bgeesaman-gke-demos.svc.id.goog"
   defaultMaxPodsPerNode: 110
@@ -105,13 +108,13 @@ spec:
         - black
         workloadMetadataConfig:
           nodeMetadata: "SECURE"
-        taints:
-          - key: "test1"
-            value: "value1"
-            effect: "NO_SCHEDULE"
-          - key: "test2"
-            value: "value2"
-            effect: "NO_EXECUTE"
+        #taints:
+        #  - key: "test1"
+        #    value: "value1"
+        #    effect: "NO_SCHEDULE"
+        #  - key: "test2"
+        #    value: "value2"
+        #    effect: "NO_EXECUTE"
   tags:
     - blue
     - green

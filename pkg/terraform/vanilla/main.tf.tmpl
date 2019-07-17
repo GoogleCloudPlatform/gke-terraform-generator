@@ -44,7 +44,10 @@ resource "google_container_cluster" "cluster" {
   {{- else}}
   // Zonal Cluster
   location       = var.zones[0]
-  node_locations = var.zones
+  {{- if gt (len .Spec.Zones) 0 }}
+  // Remove the first zone and list just the remaining zones
+  node_locations = slice(var.zones, 1, length(var.zones))
+  {{- end}}
   {{- end}}
 
   network    = google_compute_network.network.self_link
@@ -252,9 +255,14 @@ resource "google_container_cluster" "cluster" {
 resource "google_container_node_pool" "{{.Name}}-np" {
   provider   = "google-beta"
   name       = "{{.Name}}"
+  {{- if eq $root.Spec.Regional "true" }}
   location   = var.region
+  {{- else}}
+  location   = var.zones[0]
+  {{- end}}
   cluster    = google_container_cluster.cluster.name
   node_count = "{{.Spec.InitialNodeCount}}"
+
 
   max_pods_per_node = {{.Spec.MaxPodsPerNode}}
 
@@ -307,8 +315,8 @@ resource "google_container_node_pool" "{{.Name}}-np" {
       "{{.}}",{{end}}{{end}}
     ]
 
-    {{- if .Spec.Gvisor }}
-    // Enable GKE Sandboxy (Gvisor) on this node pool
+    {{- if eq .Spec.Gvisor "true" }}
+    // Enable GKE Sandbox (Gvisor) on this node pool
     sandbox_config {
       sandbox_type = "gvisor"
     }

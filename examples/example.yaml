@@ -34,8 +34,8 @@ spec:
     binaryAuth: true
     httpLoadBalancing: true
   labels:
-    bradg: cool
-    chris: cooler
+    l1: v1
+    l2: v2
   network:
     metadata:
       name: my-network
@@ -72,11 +72,11 @@ spec:
         name: my-other-nodepool
       spec:
         initialNodeCount: 1
-        machineType: n1-standard-1
+        machineType: n1-standard-2
         diskSizeGB: 50
-        diskType: pd-standard
-        acceleratorType: "nvidia-tesla-k80"
-        acceleratorCount: 1
+        diskType: pd-ssd
+        #acceleratorType: "nvidia-tesla-k80"
+        #acceleratorCount: 1
         oauthScopes:
         - "https://www.googleapis.com/auth/logging.write"
         - "https://www.googleapis.com/auth/monitoring"
@@ -86,20 +86,6 @@ spec:
         - white
         workloadMetadataConfig:
           nodeMetadata: "SECURE"
-    - metadata:
-        name: my-third-nodepool
-      spec:
-        initialNodeCount: 1
-        machineType: n1-standard-2
-        diskSizeGB: 500
-        diskType: pd-ssd
-        oauthScopes:
-        - "https://www.googleapis.com/auth/logging.write"
-        - "https://www.googleapis.com/auth/monitoring"
-        - "https://www.googleapis.com/auth/trace.append"
-        tags:
-        - purple
-        - black
   tags:
     - blue
     - green
