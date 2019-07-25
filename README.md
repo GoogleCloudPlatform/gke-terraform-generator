@@ -21,12 +21,17 @@ From a single YAML configuration file that specifies all the desired configurati
 
 ### Tools
 
-1. [gke-tf](https://github.com/GoogleCloutPlatform/gke-tf)
+1. [gke-tf](https://github.com/GoogleCloutPlatform/gke-terraform-generator)
 1. [Terraform >= 0.12.3](https://www.terraform.io/downloads.html)
 1. [Google Cloud SDK version >= 253.0.0](https://cloud.google.com/sdk/docs/downloads-versioned-archives)
 1. [kubectl matching the latest GKE version](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
 1. `bash` or `bash`-compatible shell
 1. A Google Cloud Platform project where you have `Project Owner` permissions to create VPC networks, service accounts, IAM Roles, GKE clusters, and more.
+
+#### Install gke-tf
+Download the latest version from the [Releases](https://github.com/GoogleCloudPlatform/gke-terraform-generator/releases) page
+and move the binary for your platform into your path. We provide OSX, Linux and Windows binaries, but at this point
+OSX is the tested binary.
 
 #### Install Cloud SDK
 The Google Cloud SDK is used to interact with your GCP resources.
