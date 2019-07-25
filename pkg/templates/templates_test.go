@@ -21,8 +21,8 @@ import (
 	"strings"
 	"testing"
 
-	"partner-code.googlesource.com/gke-terraform-generator/pkg/api"
-	"partner-code.googlesource.com/gke-terraform-generator/pkg/terraform/cft"
+	"github.com/GoogleCloudPlatform/gke-terraform-generator/pkg/api"
+	"github.com/GoogleCloudPlatform/gke-terraform-generator/pkg/terraform/cft"
 )
 
 // TODO implement https://github.com/hashicorp/hcl/blob/master/decoder_test.go

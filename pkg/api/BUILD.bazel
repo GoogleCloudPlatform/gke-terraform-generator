@@ -22,7 +22,7 @@ go_library(
         "doc.go",
         "validate.go",
     ],
-    importpath = "partner-code.googlesource.com/gke-terraform-generator/pkg/api",
+    importpath = "github.com/GoogleCloudPlatform/gke-terraform-generator/pkg/api",
     visibility = ["//visibility:public"],
     deps = [
         "@com_github_creasty_defaults//:go_default_library",

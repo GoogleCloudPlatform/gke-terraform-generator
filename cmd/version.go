@@ -20,8 +20,8 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/GoogleCloudPlatform/gke-terraform-generator/pkg/version"
 	"github.com/spf13/cobra"
-	"partner-code.googlesource.com/gke-terraform-generator/pkg/version"
 )
 
 // NewVersionCommand is the entry point for cobra for the version command.

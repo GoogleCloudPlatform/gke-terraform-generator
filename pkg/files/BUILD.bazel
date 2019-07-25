@@ -23,7 +23,7 @@ go_library(
         "is-writeable-directory.go",
         "is-writeable_windows.go",
     ],
-    importpath = "partner-code.googlesource.com/gke-terraform-generator/pkg/files",
+    importpath = "github.com/GoogleCloudPlatform/gke-terraform-generator/pkg/files",
     visibility = ["//visibility:public"],
     deps = ["@io_k8s_klog//:go_default_library"],
 )

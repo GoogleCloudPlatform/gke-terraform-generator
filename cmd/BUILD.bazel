@@ -22,7 +22,7 @@ go_library(
         "gen.go",
         "version.go",
     ],
-    importpath = "partner-code.googlesource.com/gke-terraform-generator/cmd",
+    importpath = "github.com/GoogleCloudPlatform/gke-terraform-generator/cmd",
     visibility = ["//visibility:public"],
     deps = [
         "//pkg/api:go_default_library",

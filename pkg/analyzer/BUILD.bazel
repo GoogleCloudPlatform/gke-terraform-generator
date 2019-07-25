@@ -36,7 +36,7 @@ go_tool_library(
 go_library(
     name = "go_default_library",
     srcs = ["importunsafe.go"],
-    importpath = "partner-code.googlesource.com/gke-terraform-generator/pkg/analyzer",
+    importpath = "github.com/GoogleCloudPlatform/gke-terraform-generator/pkg/analyzer",
     visibility = ["//visibility:public"],
     deps = ["@org_golang_x_tools//go/analysis:go_default_library"],
 )

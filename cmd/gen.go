@@ -27,9 +27,9 @@ import (
 
 	"k8s.io/klog"
 
-	"partner-code.googlesource.com/gke-terraform-generator/pkg/api"
-	"partner-code.googlesource.com/gke-terraform-generator/pkg/files"
-	"partner-code.googlesource.com/gke-terraform-generator/pkg/templates"
+	"github.com/GoogleCloudPlatform/gke-terraform-generator/pkg/api"
+	"github.com/GoogleCloudPlatform/gke-terraform-generator/pkg/files"
+	"github.com/GoogleCloudPlatform/gke-terraform-generator/pkg/templates"
 )
 
 var (

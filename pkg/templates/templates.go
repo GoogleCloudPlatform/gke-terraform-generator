@@ -29,9 +29,9 @@ import (
 
 	"k8s.io/klog"
 
-	"partner-code.googlesource.com/gke-terraform-generator/pkg/api"
-	"partner-code.googlesource.com/gke-terraform-generator/pkg/terraform/cft"
-	"partner-code.googlesource.com/gke-terraform-generator/pkg/terraform/vanilla"
+	"github.com/GoogleCloudPlatform/gke-terraform-generator/pkg/api"
+	"github.com/GoogleCloudPlatform/gke-terraform-generator/pkg/terraform/cft"
+	"github.com/GoogleCloudPlatform/gke-terraform-generator/pkg/terraform/vanilla"
 )
 
 type TFType int

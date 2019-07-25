@@ -16,7 +16,7 @@ limitations under the License.
 
 package main
 
-import "partner-code.googlesource.com/gke-terraform-generator/cmd"
+import "github.com/GoogleCloudPlatform/gke-terraform-generator/cmd"
 
 func main() {
 	cmd.Execute()

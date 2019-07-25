@@ -15,7 +15,7 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 load("@bazel_gazelle//:def.bzl", "gazelle")
 
-# gazelle:prefix  partner-code.googlesource.com/gke-terraform-generator
+# gazelle:prefix  github.com/GoogleCloudPlatform/gke-terraform-generator
 gazelle(name = "gazelle")
 
 go_library(
@@ -24,7 +24,7 @@ go_library(
         "doc.go",
         "main.go",
     ],
-    importpath = "partner-code.googlesource.com/gke-terraform-generator",
+    importpath = "github.com/GoogleCloudPlatform/gke-terraform-generator",
     visibility = ["//visibility:private"],
     deps = ["//cmd:go_default_library"],
 )
@@ -34,6 +34,6 @@ go_binary(
     embed = [":go_default_library"],
     visibility = ["//visibility:public"],
     x_defs = {
-	     "partner-code.googlesource.com/gke-terraform-generator/pkg/version.Version": "{GKE_TF_VERSION}",
+	     "github.com/GoogleCloudPlatform/gke-terraform-generator/pkg/version.Version": "{GKE_TF_VERSION}",
     },
 )
