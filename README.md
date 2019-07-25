@@ -21,7 +21,7 @@ From a single YAML configuration file that specifies all the desired configurati
 
 ### Tools
 
-1. [gke-tf](https://github.com/GoogleCloutPlatform/gke-terraform-generator)
+1. [gke-tf](https://github.com/GoogleCloudPlatform/gke-terraform-generator)
 1. [Terraform >= 0.12.3](https://www.terraform.io/downloads.html)
 1. [Google Cloud SDK version >= 253.0.0](https://cloud.google.com/sdk/docs/downloads-versioned-archives)
 1. [kubectl matching the latest GKE version](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
