@@ -1,4 +1,4 @@
-module partner-code.googlesource.com/gke-terraform-generator
+module github.com/GoogleCloudPlatform/gke-terraform-generator
 
 require (
 	github.com/creasty/defaults v1.3.0
