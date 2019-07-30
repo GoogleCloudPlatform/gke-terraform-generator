@@ -129,3 +129,60 @@ func TestPrivateTemplate(t *testing.T) {
 		t.Fatalf("template does not contain the private source provider")
 	}
 }
+
+// TODO test all yaml files
+func TestFullTemplate(t *testing.T) {
+
+	configFile := "../../examples/full.yaml"
+	gkeTF, err := api.UnmarshalGkeTF(configFile)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if gkeTF == nil {
+		t.Fatal("unable to load file")
+	}
+
+	if gkeTF.Name == "" {
+		t.Fatal("gkeTF.Name is empty")
+	}
+
+	if gkeTF.Spec.Private == "false" {
+		t.Fatal("gkeTF.Spec.Private should be true")
+	}
+
+	if err := api.SetApiDefaultValues(gkeTF, configFile); err != nil {
+		t.Fatalf("error merging defaults: %v", gkeTF)
+	}
+
+	testTemplates, err := NewGKETemplates(VANILLA)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = testTemplates.CopyTo(true, ".", gkeTF)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	b, err := ioutil.ReadFile("network.tf")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	s := string(b)
+
+	bastionzone := "bastion_zone = \"us-east4-c\""
+	if !strings.Contains(s, bastionzone) {
+		t.Log(s)
+		t.Fatalf("template does not contain the defined bastion zone")
+	}
+
+	zone := "zone = local.bastion_zone"
+	if !strings.Contains(s, zone) {
+		t.Log(s)
+		t.Fatalf("template does not contain the defined instnace zone for the bastion")
+	}
+}

@@ -23,6 +23,7 @@ spec:
   #- us-east4-a
   #- us-east4-c
   #databaseEncryption:
+  #  replace this with the existing kms key
   #  keyName: "projects/myproject/locations/us-central1/keyRings/myring/cryptoKeys/mykey"
   #  state: "ENCRYPTED"
   #resourceUsageExportConfig:
@@ -60,11 +61,15 @@ spec:
   #  - key: "testall"
   #    value: "valueall"
   #    effect: "NO_SCHEDULE"
-  workloadIdentityConfig:
-    identityNamespace: "bgeesaman-gke-demos.svc.id.goog"
+  # workloadIdentityConfig:
+  # replace with correct values that match you project
+  #  identityNamespace: "bgeesaman-gke-demos.svc.id.goog"
   defaultMaxPodsPerNode: 110
   tpu: false
   alpha: false
+  bastion:
+    spec:
+      zone: "us-east4-c"
   nodePools:
     - metadata:
         name: gketf-node-pool
@@ -89,7 +94,8 @@ spec:
         - "https://www.googleapis.com/auth/trace.append"
         labels:
           seven: "eight"
-        serviceAccount: "gketf-1-node-sa@bgeesaman-gke-demos.iam.gserviceaccount.com"
+        # replace the following line with the existing service account
+        # serviceAccount: "gketf-1-node-sa@my-project.iam.gserviceaccount.com"
         workloadMetadataConfig:
           nodeMetadata: "GKE_METADATA_SERVER"
     - metadata:
