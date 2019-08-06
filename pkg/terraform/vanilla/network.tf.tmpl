@@ -134,6 +134,13 @@ resource "google_compute_router_nat" "nat" {
 // Bastion Host
 locals {
   hostname = format("%s-bastion", var.cluster_name)
+  {{- if .Spec.Bastion }}
+  bastion_zone = "{{.Spec.Bastion.Spec.Zone}}"
+  {{- else }}
+  // If zone a does not exist in a region please create a yaml spec for the bastion.
+  // TODO update this debug statement
+  bastion_zone = format("%s-a", var.region)
+  {{- end }}
 }
 
 // Dedicated service account for the Bastion instance
@@ -164,14 +171,15 @@ data "template_file" "startup_script" {
   sudo apt-get update -y
   sudo apt-get install -y tinyproxy
   EOF
-
 }
+
+// TODO add more options for bastion
 
 // The Bastion Host
 resource "google_compute_instance" "instance" {
   name = local.hostname
   machine_type = "g1-small"
-  zone = format("%s-a", var.region)
+  zone = local.bastion_zone
   project = var.project_id
   tags = ["bastion"]
 
@@ -212,7 +220,7 @@ resource "google_compute_instance" "instance" {
     command = <<EOF
         READY=""
         for i in $(seq 1 20); do
-          if gcloud compute ssh ${local.hostname} --project ${var.project_id} --zone ${var.region}-a --command uptime; then
+          if gcloud compute ssh ${local.hostname} --project ${var.project_id} --zone ${local.bastion_zone} --command uptime; then
             READY="yes"
             break;
           fi

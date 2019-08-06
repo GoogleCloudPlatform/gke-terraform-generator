@@ -22,6 +22,7 @@ filegroup(
         "test-data.yaml",
         "public-example.yaml",
         "min-example.yaml",
+        "full.yaml",
     ],
     visibility = ["//visibility:public"],
 )

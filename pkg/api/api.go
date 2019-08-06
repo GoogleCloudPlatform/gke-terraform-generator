@@ -21,10 +21,7 @@ import (
 	"io/ioutil"
 )
 
-// TODO add nvida card values
-
 // TODO add bastion
-// TODO add nat gateway
 
 // GkeTF is the base layer for the API.  It includes a ClusterSpec and other obligatory information.
 type GkeTF struct {
@@ -130,6 +127,9 @@ type ClusterSpec struct {
 	// https://cloud.google.com/kubernetes-engine/docs/how-to/intranode-visibility
 	// Requires enabling VPC flow logs on the subnet first
 	IntraNodeVisibility string `yaml:"intraNodeVisibility,omitempty" default:"false" validate:"eq=true|eq=false"`
+
+	// Bastion defines configuration specific for the bastion created with a private clusters.
+	Bastion *GkeBastion `yaml:"bastion,omitempty"` // TODO validate
 }
 
 // GkeNetwork wraps a NetworkSpec.
@@ -157,6 +157,21 @@ type NetworkSpec struct {
 	// TODO test for this - The given master_ipv4_cidr 10.0.0.0/28 overlaps with an existing network 10.0.0.0/24.
 	// TODO we make have to make MasterIPV4CIDRBlock required if it is a private cluster.  Need more testing.
 
+}
+
+// GkeBastion wraps a BastionSpec.
+type GkeBastion struct {
+	TypeMeta   `yaml:",inline"`
+	ObjectMeta `yaml:"metadata,omitempty"`
+
+	// BastionSpec includes the base information for a bastion host that is used with a private cluster. This allows a user to define the zone for a bastion, if not defined the zone will default to the "a" zone.
+	Spec BastionSpec `yaml:"spec" validate:"required,dive"`
+}
+
+// BastionSpec includes the base information for a bastion host that is used with a private cluster.
+type BastionSpec struct {
+	// Zone defines the zone where the bastion host is created.
+	Zone string `yaml:"zone" validate:"required"`
 }
 
 // GkeNetwork wraps a NodePoolSpec.
@@ -297,11 +312,11 @@ type NodePoolSpec struct {
 
 // Defines how pods on this node pool can interact (or not) with the GCE Metadata APIs.
 // https://cloud.google.com/kubernetes-engine/docs/how-to/workload-identity
-// UNSPECIFIED = not set, EXPOSED = off, SECURE = Metadata Concealment, 
+// UNSPECIFIED = not set, EXPOSED = off, SECURE = Metadata Concealment,
 // GKE_METADATA_SERVER = workload identity and metadata concealment combined.
 type WorkloadMetadataConfigSpec struct {
 	// How to expose the node metadata to the workload running on the node.
-        // https://www.terraform.io/docs/providers/google/r/container_cluster.html#node_metadata
+	// https://www.terraform.io/docs/providers/google/r/container_cluster.html#node_metadata
 	NodeMetadata *string `yaml:"nodeMetadata" validate:"required,eq=UNSPECIFIED|eq=EXPOSED|eq=SECURE|eq=GKE_METADATA_SERVER"`
 }
 
