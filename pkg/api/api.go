@@ -59,7 +59,7 @@ type ClusterSpec struct {
 	Taints *[]TaintSpec `yaml:"taints" validate:"omitempty,dive"`
 	// OauthScopes is a slice of oauth scopes that are applied to a all nodes.  This slice defaults to the base required oauth
 	// scopes.
-	OauthScopes *[]string `yaml:"oauthScopes" default:"[\"https://www.googleapis.com/auth/trace.append\",\"https://www.googleapis.com/auth/service.management.readonly\",\"https://www.googleapis.com/auth/monitoring\",\"https://www.googleapis.com/auth/devstorage.read_only\",\"https://www.googleapis.com/auth/servicecontrol\"]"`
+	OauthScopes *[]string `yaml:"oauthScopes" default:"[\"https://www.googleapis.com/auth/trace.append\",\"https://www.googleapis.com/auth/service.management.readonly\",\"https://www.googleapis.com/auth/monitoring\",\"https://www.googleapis.com/auth/devstorage.read_only\",\"https://www.googleapis.com/auth/servicecontrol\", \"https://www.googleapis.com/auth/devstorage.read_only\"]"`
 	// Tags is a slice of tags that are applied to all nodes.
 	Tags *[]string `yaml:"tags"`
 
