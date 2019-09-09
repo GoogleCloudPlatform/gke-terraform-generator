@@ -202,21 +202,16 @@ resource "google_container_cluster" "cluster" {
 
   // Specify the list of CIDRs which can access the master's API
 
+{{- if .Spec.MasterAuthorizedNetworksConfig }}
+  {{- range .Spec.MasterAuthorizedNetworksConfig }}
   master_authorized_networks_config {
-    {{- if .Spec.MasterAuthorizedNetworksConfig }}
-    {{- range .Spec.MasterAuthorizedNetworksConfig }}
     cidr_blocks {
       cidr_block = "{{ .CidrBlock }}"
       display_name = "{{ .DisplayName }}"
     }
-    {{- end }}
-    {{- else }}
-    cidr_blocks {
-      cidr_block   = "10.0.0.0/8"
-      display_name = "10/8 IPs"
-    }
-    {{- end }}
+  {{- end }}
   }
+{{- end }}
 
 {{- if eq .Spec.Private "true" }}
   // Configure the cluster to have private nodes and private control plane access only
@@ -245,7 +240,9 @@ resource "google_container_cluster" "cluster" {
     "google_project_service.service",
     "google_project_iam_member.service-account",
     "google_project_iam_member.service-account-custom",
+{{- if eq .Spec.Private "true" }}
     "google_compute_router_nat.nat",
+{{- end}}
   ]
 
 }
